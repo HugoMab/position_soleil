@@ -27,8 +27,8 @@ lon = 7.286646
 
 # Séquence de date
 date_seq <- seq(
-  as.POSIXct("2025-05-14 00:00:00", tz = "Europe/Paris"),
-  as.POSIXct("2025-05-14 23:59:00", tz = "Europe/Paris"),
+  as.POSIXct("2025-05-15 00:00:00", tz = "Europe/Paris"),
+  as.POSIXct("2025-05-15 23:59:00", tz = "Europe/Paris"),
   by = "10 min"
 )
 
@@ -97,8 +97,8 @@ puissance_max <- 600    # Puissance crête du panneau (en W)
 
 # 📅 Générer une séquence horaire pour un jour
 date_seq <- seq(
-  as.POSIXct("2025-05-15 00:00:00", tz = "Europe/Paris"),
-  as.POSIXct("2025-05-15 23:59:00", tz = "Europe/Paris"),
+  as.POSIXct("2025-12-21 00:00:00", tz = "Europe/Paris"),
+  as.POSIXct("2025-12-21 23:59:00", tz = "Europe/Paris"),
   by = "5 min"
 )
 
