@@ -11,6 +11,8 @@ gc()
 library(ggplot2)
 library(data.table)
 library(openxlsx)
+library(tidyr)
+library(dplyr)
 
 
 ## Lecture des données
@@ -29,7 +31,7 @@ setwd(wdpath)
 quot <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="quotidien", colNames = TRUE, detectDates = TRUE))
 
 # Résultats détaillés (horaires)
-hora <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="horaire", colNames = TRUE, detectDates = TRUE, startRow = 2))
+prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Entrée", colNames = TRUE, detectDates = TRUE, startRow = 1))
 
 
 # ----------------------- #
@@ -41,12 +43,12 @@ quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, tr
 quot[an == 2025, prix_achat := .3084][an == 2025, prix_vente := .12]
 
 # Donnée horaires
-hora[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date))]
+prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date))]
 
 
 # Structure des données
 str(quot)
-str(hora)
+str(prod)
 
 
 # ------- #
@@ -61,15 +63,31 @@ ggplot(quot, aes(x = date)) +
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 # Horaire
-
-# Création du data set
-hora2 <- subset(hora, date == '2025-05-16', select=c(prod_0, prod_1, prod_2, prod_3, prod_4, prod_5,prod_6,prod_7,prod_8,prod_9,prod_10,prod_11,prod_12,prod_13,prod_14,prod_15,prod_16,prod_17,prod_18,prod_19,prod_20,prod_21, prod_22, prod_23))
-setnames(hora2, c('prod_0', 'prod_1', 'prod_2', 'prod_3', 'prod_4', 'prod_5', 'prod_6', 'prod_7', 'prod_8', 'prod_9', 'prod_10', 'prod_11', 'prod_12', 'prod_13', 'prod_14', 'prod_15', 'prod_16', 'prod_17', 'prod_18', 'prod_19', 'prod_20', 'prod_21', 'prod_22', 'prod_23'), 
-         c('prod_0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'))
-
-
 # format long
-melt(hora2)
+df_long <- prod %>%
+  pivot_longer(
+    cols = -c(date, an, mois, semaine, trim, jour), # Toutes les colonnes sauf dates
+    names_to = "Heure", # Nouvelle colonne pour les heures
+    values_to = "Production") %>%  # Valeurs de production horaire
+  mutate(
+    Heure = as.integer(Heure),
+    date = as.Date(date)
+  )
+  
+df_long <- as.data.table(df_long)
+#df_long <- subset(df_long, date %in% c("2025-05-15", "2025-05-17"))
 
-ggplot(hora, aes(x = date)) +
-  geom_line(aes(y = ))
+df_ligne <- subset(df_long, date == "2025-05-15")
+df_barre <- subset(df_long, date == "2025-05-17")
+
+
+ggplot() +
+  geom_col(data = df_barre, aes(x = Heure, y = Production), fill = "#a7a824", alpha = 0.7) +
+  geom_line(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700") +
+  geom_point(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700", size = 2) +
+  labs(title = "Production horaire des panneaux solaires",
+       x = "Heure de la journée",
+       y = "Production (Wh)", color = "date") +
+  theme_gray()
+
+
