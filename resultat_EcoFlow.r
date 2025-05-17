@@ -77,8 +77,11 @@ df_long <- prod %>%
 df_long <- as.data.table(df_long)
 #df_long <- subset(df_long, date %in% c("2025-05-15", "2025-05-17"))
 
-df_ligne <- subset(df_long, date == "2025-05-15")
-df_barre <- subset(df_long, date == "2025-05-17")
+jour_ligne <- "2025-05-15"
+jour_barre <- "2025-05-17"
+
+df_ligne <- subset(df_long, date == jour_ligne)
+df_barre <- subset(df_long, date == jour_barre)
 
 
 ggplot() +
@@ -87,7 +90,8 @@ ggplot() +
   geom_point(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700", size = 2) +
   labs(title = "Production horaire des panneaux solaires",
        x = "Heure de la journée",
-       y = "Production (Wh)", color = "date") +
+       y = "Production (Wh)", 
+       subtitle = paste("Barres =", jour_barre, "| Ligne =", jour_ligne)) +
   theme_gray()
 
 
