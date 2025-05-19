@@ -77,8 +77,8 @@ df_long <- prod %>%
 df_long <- as.data.table(df_long)
 #df_long <- subset(df_long, date %in% c("2025-05-15", "2025-05-17"))
 
-jour_ligne <- "2025-05-15"
-jour_barre <- "2025-05-17"
+jour_ligne <- "2025-05-18"
+jour_barre <- "2025-05-19"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
