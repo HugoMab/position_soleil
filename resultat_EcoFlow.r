@@ -105,3 +105,14 @@ prod_hebd <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("semaine", "an"
 prod_mens <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("mois", "an")][order(mois, an)]
 prod_trim <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("trim", "an")][order(trim, an)]
 prod_an <- quot[, .(prod_kWh = (sum(production)/1000)), by = "an"][order(an)]
+
+
+# Graphique
+# Hebdomadaire
+ggplot() +
+  geom_col(data = prod_hebd, aes(x = semaine, y = prod_kWh), fill = "#ffd700", alpha = 0.9) +
+  labs(title = "Production hebdomadaire (en kWh)",
+       x = "Semaine",
+       y = "Production (kWh)") +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
