@@ -57,7 +57,7 @@ str(prod)
 # Analyse #
 # ------- #
 
-## Graphique
+## Graphiques
 
 # Quotidien
 ggplot(quot, aes(x = date)) +
@@ -80,7 +80,7 @@ df_long <- as.data.table(df_long)
 #df_long <- subset(df_long, date %in% c("2025-05-15", "2025-05-17"))
 
 jour_ligne <- "2025-05-18"
-jour_barre <- "2025-05-19"
+jour_barre <- "2025-05-20"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -98,3 +98,10 @@ ggplot() +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
 
+
+
+# Résumés des production hebdomadaires, mensuels, timestrielles, etc.
+prod_hebd <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("semaine", "an")][order(semaine, an)]
+prod_mens <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("mois", "an")][order(mois, an)]
+prod_trim <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("trim", "an")][order(trim, an)]
+prod_an <- quot[, .(prod_kWh = (sum(production)/1000)), by = "an"][order(an)]
