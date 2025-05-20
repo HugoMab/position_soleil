@@ -18,9 +18,11 @@ library(dplyr)
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
 ddpath  <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
+# ddpath  <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 # Chemins d'accès aux dossiers de travail
 wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/" 
+# wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop 
 
 # fixe le dossier de travail et de données
 setwd(wdpath)
@@ -92,6 +94,7 @@ ggplot() +
        x = "Heure de la journée",
        y = "Production (Wh)", 
        subtitle = paste("Barres =", jour_barre, "| Ligne =", jour_ligne)) +
-  theme_gray()
-
+  scale_x_continuous(breaks = seq(0, 23, 1)) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
 
