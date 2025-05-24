@@ -47,7 +47,6 @@ quot[an == 2025, prix_achat := .3084][an == 2025, prix_vente := .12]
 # Donnée horaires
 prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date))]
 
-
 # Structure des données
 str(quot)
 str(prod)
@@ -80,7 +79,7 @@ df_long <- as.data.table(df_long)
 #df_long <- subset(df_long, date %in% c("2025-05-15", "2025-05-17"))
 
 jour_ligne <- "2025-05-18"
-jour_barre <- "2025-05-20"
+jour_barre <- "2025-05-24"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -90,6 +89,7 @@ ggplot() +
   geom_col(data = df_barre, aes(x = Heure, y = Production), fill = "#a7a824", alpha = 0.7) +
   geom_line(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700") +
   geom_point(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700", size = 2) +
+  geom_hline(yintercept = 180, linetype = "dashed", color = "khaki3") +
   labs(title = "Production horaire des panneaux solaires",
        x = "Heure de la journée",
        y = "Production (Wh)", 
@@ -98,7 +98,9 @@ ggplot() +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
 
-
+# Calcul du surplus théorique (en kWh)
+df_long[, surplus := ifelse(Production < 180, 0, Production - 180)]
+sum(df_long[, surplus], na.rm=TRUE) / 1000
 
 # Résumés des production hebdomadaires, mensuels, timestrielles, etc.
 prod_hebd <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("semaine", "an")][order(semaine, an)]
