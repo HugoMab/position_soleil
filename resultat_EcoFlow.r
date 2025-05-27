@@ -78,7 +78,7 @@ df_long <- prod %>%
 df_long <- as.data.table(df_long)
 #df_long <- subset(df_long, date %in% c("2025-05-15", "2025-05-17"))
 
-jour_ligne <- "2025-05-25"
+jour_ligne <- "2025-05-26"
 jour_barre <- "2025-05-24"
 
 df_ligne <- subset(df_long, date == jour_ligne)
@@ -116,6 +116,7 @@ ggplot() +
   labs(title = "Production hebdomadaire (en kWh)",
        x = "Semaine",
        y = "Production (kWh)") +
+  scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
 
