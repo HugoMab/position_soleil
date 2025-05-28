@@ -56,6 +56,9 @@ str(prod)
 # Analyse #
 # ------- #
 
+# Journée production plus élevée
+quot[which.max(quot[, production]), date]
+
 ## Graphiques
 
 # Quotidien
@@ -78,15 +81,15 @@ df_long <- prod %>%
 df_long <- as.data.table(df_long)
 #df_long <- subset(df_long, date %in% c("2025-05-15", "2025-05-17"))
 
-jour_ligne <- "2025-05-25"
-jour_barre <- "2025-05-24"
+jour_ligne <- "2025-05-24"
+jour_barre <- "2025-05-28"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
 
 
 ggplot() +
-  geom_col(data = df_barre, aes(x = Heure, y = Production), fill = "#a7a824", alpha = 0.7) +
+  geom_col(data = df_barre, aes(x = Heure, y = Production), fill = "#a7a824", alpha = 0.75) +
   geom_line(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700") +
   geom_point(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700", size = 2) +
   geom_hline(yintercept = 180, linetype = "dashed", color = "khaki3") +
