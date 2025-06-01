@@ -57,7 +57,8 @@ str(prod)
 # ------- #
 
 # Journée production plus élevée
-quot[which.max(quot[, production]), date]
+date_max <- quot[which.max(quot[, production]), date]
+date_min <- quot[which.min(quot[date > "2025-05-16", production]), date]
 
 ## Graphiques
 
@@ -81,8 +82,8 @@ df_long <- prod %>%
 df_long <- as.data.table(df_long)
 #df_long <- subset(df_long, date %in% c("2025-05-15", "2025-05-17"))
 
-jour_ligne <- "2025-05-24"
-jour_barre <- "2025-05-28"
+jour_ligne <- date_max
+jour_barre <- date_min
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -92,7 +93,7 @@ ggplot() +
   geom_col(data = df_barre, aes(x = Heure, y = Production), fill = "#a7a824", alpha = 0.75) +
   geom_line(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700") +
   geom_point(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700", size = 2) +
-  geom_hline(yintercept = 180, linetype = "dashed", color = "khaki3") +
+#  geom_hline(yintercept = 180, linetype = "dashed", color = "khaki3") +
   labs(title = "Production horaire des panneaux solaires",
        x = "Heure de la journée",
        y = "Production (Wh)", 
@@ -112,7 +113,7 @@ prod_trim <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("trim", "an")][
 prod_an <- quot[, .(prod_kWh = (sum(production)/1000)), by = "an"][order(an)]
 
 
-# Graphique
+## Graphique
 # Hebdomadaire
 ggplot() +
   geom_col(data = prod_hebd, aes(x = semaine, y = prod_kWh), fill = "#ffd700", alpha = 0.9) +
@@ -123,3 +124,12 @@ ggplot() +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
 
+# Mensuel
+ggplot() +
+  geom_col(data = prod_mens, aes(x = mois, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
+  labs(title = "Production mensuelle (en kWh)",
+       x = "Mois",
+       y = "Production (kWh)") +
+  scale_x_continuous(breaks = seq(5,6,1)) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
