@@ -27,8 +27,8 @@ lon = 7.286646
 
 # Séquence de date
 date_seq <- seq(
-  as.POSIXct("2025-05-15 00:00:00", tz = "Europe/Paris"),
-  as.POSIXct("2025-05-15 23:59:00", tz = "Europe/Paris"),
+  as.POSIXct("2025-06-03 00:00:00", tz = "Europe/Paris"),
+  as.POSIXct("2025-06-03 23:59:00", tz = "Europe/Paris"),
   by = "10 min"
 )
 
@@ -69,7 +69,7 @@ get_sun_data_for_day <- function(date_str, lat, lon, tz = "Europe/Paris") {
 }
 
 # 3. Récupérer les données pour plusieurs jours
-dates <- as.character(seq(as.Date("2025-06-19"), as.Date("2025-06-23"), by = "1 day"))
+dates <- as.character(seq(as.Date("2025-06-03"), as.Date("2025-06-07"), by = "1 day"))
 
 sun_data <- bind_rows(lapply(dates, get_sun_data_for_day, lat = lat, lon = lon))
 
@@ -97,8 +97,8 @@ puissance_max <- 600    # Puissance crête du panneau (en W)
 
 # 📅 Générer une séquence horaire pour un jour
 date_seq <- seq(
-  as.POSIXct("2025-12-21 00:00:00", tz = "Europe/Paris"),
-  as.POSIXct("2025-12-21 23:59:00", tz = "Europe/Paris"),
+  as.POSIXct("2025-06-03 00:00:00", tz = "Europe/Paris"),
+  as.POSIXct("2025-06-03 23:59:00", tz = "Europe/Paris"),
   by = "5 min"
 )
 
@@ -139,7 +139,7 @@ sun <- sun %>%
   mutate(energy_Wh = power_W * 5 / 60)  # 5 minutes → fraction d'heure
 
 total_energy <- sum(sun$energy_Wh, na.rm = TRUE)
-cat("Energie totale produite le 15 mai 2025: ", round(total_energy), "Wh\n")
+cat("Energie totale produite le 03 juin 2025: ", round(total_energy), "Wh\n")
 
 # 📈 Visualisation de la puissance au cours de la journée
 ggplot(sun, aes(x = time, y = power_W)) +
