@@ -57,8 +57,9 @@ str(prod)
 # ------- #
 
 # Journée production plus élevée
-date_max <- quot[which.max(quot[, production]), date]
-date_min <- quot[which.min(quot[date > "2025-05-16", production]), date]
+(date_max <- quot[which.max(quot[, production]), date])
+(date_min <- quot[which.min(quot[date > "2025-05-16", production]), date])
+
 
 ## Graphiques
 
@@ -83,7 +84,7 @@ df_long <- as.data.table(df_long)
 #df_long <- subset(df_long, date %in% c("2025-05-15", "2025-05-17"))
 
 jour_ligne <- date_max
-jour_barre <- date_min
+jour_barre <- "2025-06-02"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -122,7 +123,7 @@ ggplot() +
        y = "Production (kWh)") +
   scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
   theme_gray() +
-  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 
 # Mensuel
 ggplot() +
@@ -132,4 +133,4 @@ ggplot() +
        y = "Production (kWh)") +
   scale_x_continuous(breaks = seq(5,6,1)) +
   theme_gray() +
-  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
