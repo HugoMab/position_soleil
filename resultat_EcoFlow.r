@@ -66,7 +66,7 @@ df_long <- as.data.table(df_long)
 df_long[, surplus := ifelse(Production < 180, 0, Production - 180)]
 sum(df_long[, surplus], na.rm=TRUE) / 1000
 
-surplus_jour <- df_long[, .(surplus = sum(surplus)), by="date"][order(date)]
+surplus_jour <- df_long[, .(surplus = sum(surplus, na.rm=TRUE)), by="date"][order(date)]
 
 # Structure des données
 str(quot)
@@ -137,3 +137,9 @@ ggplot() +
   scale_x_continuous(breaks = seq(5,6,1)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
+
+
+## Maximum heure par heure
+(max_heure <- df_long[, .(max_heure = max(Production, na.rm=TRUE)), by="Heure"][order(Heure)])
+sum(max_heure[, max_heure])
+max(quot[, production])
