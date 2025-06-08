@@ -47,6 +47,27 @@ quot[an == 2025, prix_achat := .3084][an == 2025, prix_vente := .12]
 # Donnée horaires
 prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date))]
 
+
+## Format long
+# Horaire
+df_long <- prod %>%
+  pivot_longer(
+    cols = -c(date, an, mois, semaine, trim, jour), # Toutes les colonnes sauf dates
+    names_to = "Heure", # Nouvelle colonne pour les heures
+    values_to = "Production") %>%  # Valeurs de production horaire
+  mutate(
+    Heure = as.integer(Heure),
+    date = as.Date(date)
+  )
+
+df_long <- as.data.table(df_long)
+
+# Calcul du surplus théorique horaire (en kWh)
+df_long[, surplus := ifelse(Production < 180, 0, Production - 180)]
+sum(df_long[, surplus], na.rm=TRUE) / 1000
+
+surplus_jour <- df_long[, .(surplus = sum(surplus)), by="date"][order(date)]
+
 # Structure des données
 str(quot)
 str(prod)
@@ -68,23 +89,8 @@ ggplot(quot, aes(x = date)) +
   geom_bar(aes(y = production), stat = "identity", fill = "yellow2") + 
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
-# Horaire
-# format long
-df_long <- prod %>%
-  pivot_longer(
-    cols = -c(date, an, mois, semaine, trim, jour), # Toutes les colonnes sauf dates
-    names_to = "Heure", # Nouvelle colonne pour les heures
-    values_to = "Production") %>%  # Valeurs de production horaire
-  mutate(
-    Heure = as.integer(Heure),
-    date = as.Date(date)
-  )
-  
-df_long <- as.data.table(df_long)
-#df_long <- subset(df_long, date %in% c("2025-05-15", "2025-05-17"))
-
 jour_ligne <- date_max
-jour_barre <- "2025-06-04"
+jour_barre <- "2025-06-05"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -103,9 +109,6 @@ ggplot() +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
 
-# Calcul du surplus théorique (en kWh)
-df_long[, surplus := ifelse(Production < 180, 0, Production - 180)]
-sum(df_long[, surplus], na.rm=TRUE) / 1000
 
 # Résumés des production hebdomadaires, mensuels, timestrielles, etc.
 prod_hebd <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("semaine", "an")][order(semaine, an)]
