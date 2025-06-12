@@ -13,6 +13,7 @@ library(data.table)
 library(openxlsx)
 library(tidyr)
 library(dplyr)
+library(lubridate)
 
 
 ## Lecture des données
@@ -41,11 +42,11 @@ prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="En
 # ----------------------- #
 
 # Données quotidiennes
-quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date))]
+quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
 quot[an == 2025, prix_achat := .3084][an == 2025, prix_vente := .12]
 
 # Donnée horaires
-prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date))]
+prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
 
 
 ## Format long
@@ -86,11 +87,11 @@ str(prod)
 
 # Quotidien
 ggplot(quot, aes(x = date)) +
-  geom_bar(aes(y = production), stat = "identity", fill = "yellow2") + 
-  labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
+  geom_bar(aes(y = production), stat = "identity", fill = "yellow3") + 
+  labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")http://127.0.0.1:29145/graphics/plot_zoom_png?width=937&height=864
 
 jour_ligne <- date_max
-jour_barre <- "2025-06-08"
+jour_barre <- "2025-06-11"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -143,3 +144,5 @@ ggplot() +
 (max_heure <- df_long[, .(max_heure = max(Production, na.rm=TRUE)), by="Heure"][order(Heure)])
 sum(max_heure[, max_heure])
 max(quot[, production])
+
+100*(max(quot[, production]) / sum(max_heure[, max_heure]))
