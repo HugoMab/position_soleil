@@ -43,7 +43,7 @@ prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="En
 
 # Données quotidiennes
 quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
-quot[an == 2025, prix_achat := .3084][an == 2025, prix_vente := .112]
+quot[an == 2025, prix_achat := .3084][an == 2025, prix_vente := .12]
 
 # Donnée horaires
 prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
@@ -87,11 +87,11 @@ str(prod)
 
 # Quotidien
 ggplot(quot, aes(x = date)) +
-  geom_bar(aes(y = production), stat = "identity", fill = "yellow3") + 
+  geom_bar(aes(y = production), stat = "identity", fill = "yellow2") + 
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 jour_ligne <- date_max
-jour_barre <- "2025-06-15"
+jour_barre <- "2025-06-16"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -121,7 +121,7 @@ prod_an <- quot[, .(prod_kWh = (sum(production)/1000)), by = "an"][order(an)]
 ## Graphique
 # Hebdomadaire
 ggplot() +
-  geom_col(data = prod_hebd, aes(x = semaine, y = prod_kWh), fill = "#ffd700", alpha = 0.9) +
+  geom_col(data = prod_hebd, aes(x = semaine, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
   labs(title = "Production hebdomadaire (en kWh)",
        x = "Semaine",
        y = "Production (kWh)") +
