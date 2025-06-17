@@ -91,7 +91,7 @@ ggplot(quot, aes(x = date)) +
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 jour_ligne <- date_max
-jour_barre <- "2025-06-16"
+jour_barre <- "2025-06-17"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -146,3 +146,4 @@ sum(max_heure[, max_heure])
 max(quot[, production])
 
 100*(max(quot[, production]) / sum(max_heure[, max_heure]))
+
