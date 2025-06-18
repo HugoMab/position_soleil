@@ -87,7 +87,7 @@ str(prod)
 
 # Quotidien
 ggplot(quot, aes(x = date)) +
-  geom_bar(aes(y = production), stat = "identity", fill = "yellow2") + 
+  geom_bar(aes(y = production), stat = "identity", fill = "yellow3") + 
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 jour_ligne <- date_max
