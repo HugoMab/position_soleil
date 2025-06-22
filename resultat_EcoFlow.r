@@ -34,7 +34,7 @@ setwd(wdpath)
 quot <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="quotidien", colNames = TRUE, detectDates = TRUE))
 
 # Résultats détaillés (horaires)
-prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Entrée", colNames = TRUE, detectDates = TRUE, startRow = 1))
+prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Production", colNames = TRUE, detectDates = TRUE, startRow = 1))
 
 
 # ----------------------- #
