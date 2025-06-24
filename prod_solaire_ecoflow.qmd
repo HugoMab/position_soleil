@@ -1,41 +1,60 @@
-###################################################
-#                                                 #
-# Script pour l'analyse de la production EcoFlow  #
-#                                                 #
-###################################################
+---
+title: "Production panneaux solaires EcoFlow"
+author: "Hugo Mabillard"
+format: html
+embed-resources: true
+editor: visual
+execute: 
+  echo: false
+  warning: false
+  message: false
+---
 
-rm(list=ls())
-gc()
+## Production des panneaux solaires EcoFlow
 
-# Chargement des librairies
-library(ggplot2)
-library(data.table)
-library(openxlsx)
-library(tidyr)
-library(dplyr)
+```{r}
+#| label: Chargement 
+#| echo: false 
+#| warning: false 
+
+# Chargement des librairies 
+library(ggplot2) 
+library(data.table) 
+library(openxlsx) 
+library(tidyr) 
+library(dplyr) 
 library(lubridate)
-
 
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
-ddpath  <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
-# ddpath  <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+
+ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" 
+# ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" \# Desktop
 
 # Chemins d'accès aux dossiers de travail
-wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/" 
-# wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop 
+
+wdpath <- "C:/Users/doglo/OneDrive/Stat_R/work/" 
+# wdpath <- "C:/Users/Hugo/OneDrive/Stat_R/work/" \# Desktop
 
 # fixe le dossier de travail et de données
+
 setwd(wdpath)
 
-
 ## Lecture des données de base
+
 # Résultats quotidien
+
 quot <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="quotidien", colNames = TRUE, detectDates = TRUE))
 
 # Résultats détaillés (horaires)
-prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Production", colNames = TRUE, detectDates = TRUE, startRow = 1))
 
+prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Production", colNames = TRUE, detectDates = TRUE, startRow = 1))
+```
+
+```{r}
+#| label: Preparation
+#| echo: false
+#| warning: false
 
 # ----------------------- #
 # Préparation des données #
@@ -68,25 +87,25 @@ df_long <- as.data.table(df_long)
 
 # Calcul du surplus théorique horaire (en kWh)
 df_long[, surplus := ifelse(Production < 180, 0, Production - 180)]
-sum(df_long[, surplus], na.rm=TRUE) / 1000
 
 surplus_jour <- df_long[, .(surplus = sum(surplus, na.rm=TRUE)), by="date"][order(date)]
 
-# Structure des données
-str(quot)
-str(prod)
-
-
-# ------- #
-# Analyse #
-# ------- #
-
 # Journée production plus élevée
-(date_max <- quot[which.max(quot[, production]), date])
-(date_min <- quot[which.min(quot[date > "2025-05-16", production]), date])
+date_max <- quot[which.max(quot[, production]), date]
+date_min <- quot[which.min(quot[date > "2025-05-16", production]), date]
 
+prod_max <- quot[date == date_max, production]
+prod_min <- quot[date == date_min, production]
+```
 
-## Graphiques
+Le jour où les panneaux ont produit le plus d'énergie fut le `r format(date_max, "%d %B %Y")` pour un total de `r prod_max` kWh.
+
+À l'inverse, le `r format(date_min, "%d %B %Y")` les panneaux ont produit la plus faible quantité d'énergie (`r prod_min` kWh).
+
+```{r}
+#| label: Graphiques
+#| echo: false
+#| warning: false
 
 # Quotidien
 ggplot(quot, aes(x = date)) +
@@ -94,7 +113,7 @@ ggplot(quot, aes(x = date)) +
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 jour_ligne <- date_max
-jour_barre <- "2025-06-23"
+jour_barre <- auj - 1
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -142,30 +161,4 @@ ggplot() +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 
-
-## Maximum heure par heure
-(max_heure <- df_long[, .(max_heure = max(Production, na.rm=TRUE)), by="Heure"][order(Heure)])
-sum(max_heure[, max_heure])
-max(quot[, production])
-
-100*(max(quot[, production]) / sum(max_heure[, max_heure]))
-
-
-## Calcul d'une moyenne sur 7 jours
-moy_heure <- df_long[date < auj & date > auj - 8, .(moy_heure = mean(Production, na.rm = TRUE)), by="Heure"][order(Heure)]
-
-ggplot() +
-  geom_line(data = moy_heure, aes(x = Heure, y = moy_heure), color = "#ffd700") +
-  geom_line(data = df_long[date == auj - 1,], aes(x = Heure, y = Production), color = "red") +
-  geom_line(data = df_long[date == auj - 2,], aes(x = Heure, y = Production), color = "blue") +
-  geom_line(data = df_long[date == auj - 3,], aes(x = Heure, y = Production), color = "green") +
-  geom_line(data = df_long[date == auj - 4,], aes(x = Heure, y = Production), color = "pink") +
-  geom_line(data = df_long[date == auj - 5,], aes(x = Heure, y = Production), color = "gray50") +
-  geom_line(data = df_long[date == auj - 6,], aes(x = Heure, y = Production), color = "violet") +
-  geom_line(data = df_long[date == auj - 7,], aes(x = Heure, y = Production), color = "steelblue") +
-  labs(title = "Production horaire des panneaux solaires, 7 derniers jours",
-       x = "Heure de la journée",
-       y = "Production (Wh)") +
-  scale_x_continuous(breaks = seq(0, 23, 1)) +
-  theme_gray() +
-  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
+```
