@@ -90,7 +90,7 @@ str(prod)
 
 # Quotidien
 ggplot(quot, aes(x = date)) +
-  geom_bar(aes(y = production), stat = "identity", fill = "yellow3") + 
+  geom_bar(aes(y = production), stat = "identity", fill = "#a7a824") + 
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 jour_ligne <- date_max
@@ -154,18 +154,33 @@ max(quot[, production])
 ## Calcul d'une moyenne sur 7 jours
 moy_heure <- df_long[date < auj & date > auj - 8, .(moy_heure = mean(Production, na.rm = TRUE)), by="Heure"][order(Heure)]
 
+# Ajouter une colonne "jour" dans df_long (à faire avant le ggplot)
+df_long$jour <- factor(
+  paste0("J-", as.numeric(auj - df_long$date)),
+  levels = paste0("J-", 1:7)
+)
+
+# Filtrer les données à 7 derniers jours
+df_7jours <- df_long[df_long$date %in% (auj - 1:7), ]
+
+
 ggplot() +
-  geom_line(data = moy_heure, aes(x = Heure, y = moy_heure), color = "#ffd700") +
-  geom_line(data = df_long[date == auj - 1,], aes(x = Heure, y = Production), color = "red") +
-  geom_line(data = df_long[date == auj - 2,], aes(x = Heure, y = Production), color = "blue") +
-  geom_line(data = df_long[date == auj - 3,], aes(x = Heure, y = Production), color = "green") +
-  geom_line(data = df_long[date == auj - 4,], aes(x = Heure, y = Production), color = "pink") +
-  geom_line(data = df_long[date == auj - 5,], aes(x = Heure, y = Production), color = "gray50") +
-  geom_line(data = df_long[date == auj - 6,], aes(x = Heure, y = Production), color = "violet") +
-  geom_line(data = df_long[date == auj - 7,], aes(x = Heure, y = Production), color = "steelblue") +
-  labs(title = "Production horaire des panneaux solaires, 7 derniers jours",
-       x = "Heure de la journée",
-       y = "Production (Wh)") +
+  geom_line(data = moy_heure, aes(x = Heure, y = moy_heure), color = "#ffd700", linetype = "solid", linewidth = 1) +
+  geom_line(data = df_7jours, aes(x = Heure, y = Production, color = jour), linetype = "dashed", linewidth = 0.5) +
+              scale_color_manual(
+                name = "Jour",
+                values = c(
+                  "J-1" = "#015246",
+                  "J-2" = "#0b5c50",
+                  "J-3" = "#18695d",
+                  "J-4" = "#28796d",
+                  "J-5" = "#3c8d81",
+                  "J-6" = "#55a69a",
+                  "J-7" = "#84b6af"
+                )
+              ) +
+  labs(title = "Production horaire des panneaux solaires, 7 derniers jours", x = "Heure de la journée",y = "Production (Wh)") +
   scale_x_continuous(breaks = seq(0, 23, 1)) +
   theme_gray() +
-  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), legend.position = "bottom")
+
