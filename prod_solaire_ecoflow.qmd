@@ -102,6 +102,8 @@ Le jour où les panneaux ont produit le plus d'énergie fut le `r format(date_ma
 
 À l'inverse, le `r format(date_min, "%d %B %Y")` les panneaux ont produit la plus faible quantité d'énergie (`r prod_min` kWh).
 
+Comparaison entre le dernier jour et le jour de production max. (à déplacer, créer un nouveau chunk).
+
 ```{r}
 #| label: Graphiques
 #| echo: false
