@@ -46,7 +46,7 @@ auj <- Sys.Date()
 
 # Données quotidiennes
 quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
-quot[an == 2025, prix_achat := .3084][an == 2025, prix_vente := .12]
+quot[an == 2025 & date >= "2025-06-22", prix_achat := .3084][an == 2025 & date >= "2025-06-22", prix_vente := .1102]
 
 # Donnée horaires
 prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
@@ -94,7 +94,7 @@ ggplot(quot, aes(x = date)) +
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 jour_ligne <- date_max
-jour_barre <- "2025-06-23"
+jour_barre <- auj - 1
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
