@@ -94,7 +94,7 @@ ggplot(quot, aes(x = date)) +
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 jour_ligne <- date_max
-jour_barre <- auj - 0
+jour_barre <- auj - 1
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
