@@ -33,12 +33,12 @@ ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
 
 # Chemins d'accès aux dossiers de travail
 
-wdpath <- "C:/Users/doglo/OneDrive/Stat_R/work/" 
+# wdpath <- "C:/Users/doglo/OneDrive/Stat_R/work/" 
 # wdpath <- "C:/Users/Hugo/OneDrive/Stat_R/work/" \# Desktop
 
 # fixe le dossier de travail et de données
 
-setwd(wdpath)
+# setwd(wdpath)
 
 ## Lecture des données de base
 
