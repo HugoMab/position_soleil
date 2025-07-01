@@ -26,7 +26,7 @@ wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/"
 # wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop 
 
 # fixe le dossier de travail et de données
-setwd(wdpath)
+# setwd(wdpath)
 
 
 ## Lecture des données de base
@@ -83,7 +83,7 @@ str(prod)
 
 # Journée production plus élevée
 (date_max <- quot[which.max(quot[, production]), date])
-(date_min <- quot[which.min(quot[date > "2025-05-16", production]), date])
+(date_min <- quot[which.min(quot[date > "2025-05-16", production])+2, date])
 
 
 ## Graphiques

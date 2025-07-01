@@ -93,10 +93,12 @@ surplus_jour <- df_long[, .(surplus = sum(surplus, na.rm=TRUE)), by="date"][orde
 
 # Journée production plus élevée
 date_max <- quot[which.max(quot[, production]), date]
-date_min <- quot[which.min(quot[date > "2025-05-16", production]), date]
+date_min <- quot[which.min(quot[date > "2025-05-16", production])+2, date]
 
 prod_max <- quot[date == date_max, production]
 prod_min <- quot[date == date_min, production]
+
+prod_hier <- quot[date == hier, production]
 ```
 
 Le jour où les panneaux ont produit le plus d'énergie fut le `r format(date_max, "%d %B %Y")` pour un total de `r prod_max` kWh.
@@ -115,7 +117,7 @@ ggplot(quot, aes(x = date)) +
 
 ```
 
-Comparaison entre le dernier jour (`r format(hier, "%d %B %Y")`) et le jour de production max `r format(date_max, "%d %B %Y")`
+Comparaison entre le dernier jour (`r format(hier, "%d %B %Y")`; `r prod_hier` kWh) et le jour de production max. `r format(date_max, "%d %B %Y")`
 
 ```{r}
 #| label: Graph_prod_quot_2
