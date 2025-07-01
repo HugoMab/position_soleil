@@ -28,25 +28,9 @@ library(lubridate)
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
 
-ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" 
-# ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+# ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" 
+ ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
-# Chemins d'accès aux dossiers de travail
-
-
-# wdpath <- "C:/Users/doglo/OneDrive/Stat_R/work/" 
-# wdpath <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop
-
-# fixe le dossier de travail et de données
-
-# setwd(wdpath)
-
-#wdpath <- "C:/Users/doglo/OneDrive/Stat_R/work/" 
-# wdpath <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop
-
-# fixe le dossier de travail et de données
-
-#setwd(wdpath)
 
 ## Lecture des données de base
 
