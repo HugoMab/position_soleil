@@ -72,7 +72,7 @@ sum(df_long[, surplus], na.rm=TRUE) / 1000
 
 surplus_jour <- df_long[, .(surplus = sum(surplus, na.rm=TRUE)), by="date"][order(date)]
 
-quot <- quot[date >= "2025-06-22",]
+# quot <- quot[date >= "2025-06-22",] # A déplacer
 
 # Structure des données
 str(quot)
@@ -172,13 +172,13 @@ ggplot() +
               scale_color_manual(
                 name = "Jour",
                 values = c(
-                  "J-1" = "#015246",
-                  "J-2" = "#0b5c50",
-                  "J-3" = "#18695d",
-                  "J-4" = "#28796d",
-                  "J-5" = "#3c8d81",
-                  "J-6" = "#55a69a",
-                  "J-7" = "#84b6af"
+                  "J-1" = "green",
+                  "J-2" = "lightgreen",
+                  "J-3" = "springgreen",
+                  "J-4" = "tomato4",
+                  "J-5" = "gainsboro",
+                  "J-6" = "deepskyblue3",
+                  "J-7" = "darkorchid2"
                 )
               ) +
   labs(title = "Production horaire des panneaux solaires, 7 derniers jours", x = "Heure de la journée",y = "Production (Wh)") +
