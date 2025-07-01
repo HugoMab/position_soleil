@@ -72,6 +72,8 @@ sum(df_long[, surplus], na.rm=TRUE) / 1000
 
 surplus_jour <- df_long[, .(surplus = sum(surplus, na.rm=TRUE)), by="date"][order(date)]
 
+quot <- quot[date >= "2025-06-22",]
+
 # Structure des données
 str(quot)
 str(prod)
@@ -184,3 +186,6 @@ ggplot() +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), legend.position = "bottom")
 
+###
+# Table quotidien
+quot[, production := production/1000][, economie := round(((domestique + batterie) * prix_achat) + (reseau * prix_vente), 2)]
