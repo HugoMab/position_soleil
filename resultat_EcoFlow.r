@@ -96,7 +96,7 @@ ggplot(quot, aes(x = date)) +
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 jour_ligne <- date_max
-jour_barre <- auj - 1
+jour_barre <- auj - 0
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -173,8 +173,8 @@ ggplot() +
                 name = "Jour",
                 values = c(
                   "J-1" = "green",
-                  "J-2" = "lightgreen",
-                  "J-3" = "springgreen",
+                  "J-2" = "red",
+                  "J-3" = "gray14",
                   "J-4" = "tomato4",
                   "J-5" = "gainsboro",
                   "J-6" = "deepskyblue3",
