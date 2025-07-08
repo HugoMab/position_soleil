@@ -28,8 +28,8 @@ library(lubridate)
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
 
- ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
-# ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+ #ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
+ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 
 ## Lecture des données de base
