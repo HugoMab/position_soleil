@@ -97,6 +97,7 @@ ggplot(quot, aes(x = date)) +
 
 jour_ligne <- date_max
 jour_barre <- auj - 0
+#jour_barre <- "2025-05-24"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
