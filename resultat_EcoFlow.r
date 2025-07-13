@@ -190,3 +190,12 @@ ggplot() +
 ###
 # Table quotidien
 quot[, production := production/1000][, economie := round(((domestique + batterie) * prix_achat) + (reseau * prix_vente), 2)]
+
+# Tableau des meilleurs et moins bons jours
+quot2 <- subset(quot, date > "2025-05-16", select=c("date", "production"))
+setorder(quot2, -production)
+
+tab_plus <- quot2[1:10, ]
+tab_moins <- quot2[(.N - 9):.N,]
+
+
