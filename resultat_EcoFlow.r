@@ -97,6 +97,7 @@ ggplot(quot, aes(x = date)) +
 
 jour_ligne <- date_max
 jour_barre <- auj - 0
+#jour_barre <- "2025-05-24"
 
 df_ligne <- subset(df_long, date == jour_ligne)
 df_barre <- subset(df_long, date == jour_barre)
@@ -189,3 +190,13 @@ ggplot() +
 ###
 # Table quotidien
 quot[, production := production/1000][, economie := round(((domestique + batterie) * prix_achat) + (reseau * prix_vente), 2)]
+
+# Tableau des meilleurs et moins bons jours
+quot2 <- subset(quot, date > "2025-05-16", select=c("date", "production"))
+setorder(quot2, -production)
+
+tab_plus <- quot2[1:10, ]
+tab_moins <- quot2[(.N - 9):.N,]
+
+print(tab_plus)
+print(tab_moins)

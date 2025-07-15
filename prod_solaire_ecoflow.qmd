@@ -138,7 +138,7 @@ ggplot() +
 
 ```
 
-Graphiques pour la production hebdomadaire et mensuelle.
+### Graphiques pour la production hebdomadaire et mensuelle.
 
 ```{r}
 #| label: Graph_3
@@ -174,3 +174,51 @@ ggplot() +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 ```
+
+### Classements des 10 jours les plus productifs et les moins productifs
+
+```{r}
+#| label: tabl1
+#| echo: false
+#| warning: false
+
+# Tableau des meilleurs et moins bons jours
+quot2 <- subset(quot, date > "2025-05-16", select=c("date", "production"))
+setorder(quot2, -production)
+
+tab_plus <- quot2[1:10, ]
+tab_moins <- quot2[(.N - 9):.N,]
+
+setorder(tab_moins, production)
+
+```
+
+**Les 10 meilleurs jours**
+
+| Date                   | Production (en kWh)          |
+|------------------------|------------------------------|
+| `r tab_plus[1, date]`  | `r tab_plus[1, production]`  |
+| `r tab_plus[2, date]`  | `r tab_plus[2, production]`  |
+| `r tab_plus[3, date]`  | `r tab_plus[3, production]`  |
+| `r tab_plus[4, date]`  | `r tab_plus[4, production]`  |
+| `r tab_plus[5, date]`  | `r tab_plus[5, production]`  |
+| `r tab_plus[6, date]`  | `r tab_plus[6, production]`  |
+| `r tab_plus[7, date]`  | `r tab_plus[7, production]`  |
+| `r tab_plus[8, date]`  | `r tab_plus[8, production]`  |
+| `r tab_plus[9, date]`  | `r tab_plus[9, production]`  |
+| `r tab_plus[10, date]` | `r tab_plus[10, production]` |
+
+**Les 10 moins bons jours**
+
+| Date                    | Production (en kWh)           |
+|-------------------------|-------------------------------|
+| `r tab_moins[1, date]`  | `r tab_moins[1, production]`  |
+| `r tab_moins[2, date]`  | `r tab_moins[2, production]`  |
+| `r tab_moins[3, date]`  | `r tab_moins[3, production]`  |
+| `r tab_moins[4, date]`  | `r tab_moins[4, production]`  |
+| `r tab_moins[5, date]`  | `r tab_moins[5, production]`  |
+| `r tab_moins[6, date]`  | `r tab_moins[6, production]`  |
+| `r tab_moins[7, date]`  | `r tab_moins[7, production]`  |
+| `r tab_moins[8, date]`  | `r tab_moins[8, production]`  |
+| `r tab_moins[9, date]`  | `r tab_moins[9, production]`  |
+| `r tab_moins[10, date]` | `r tab_moins[10, production]` |
