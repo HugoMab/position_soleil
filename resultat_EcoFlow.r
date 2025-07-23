@@ -200,3 +200,4 @@ tab_moins <- quot2[(.N - 9):.N,]
 
 print(tab_plus)
 print(tab_moins)
+
