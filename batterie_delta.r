@@ -17,8 +17,8 @@ temps_restant <- function(pc_dep, pc_arr, puiss) {
 }
 
 pc_arr = .8
-pc_dep = .72
-puiss = 76
+pc_dep = .63
+puiss = 600
 
 temps_restant(pc_dep = pc_dep, pc_arr = pc_arr, puiss = puiss)
 
