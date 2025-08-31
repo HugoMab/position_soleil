@@ -93,9 +93,9 @@ prod_min <- quot[date == date_min, production]
 prod_hier <- quot[date == hier, production]
 ```
 
-Le jour où les panneaux ont produit le plus d'énergie fut le `r format(date_max, "%d %B %Y")` pour un total de `r prod_max` kWh.
+Le jour où les panneaux ont produit le plus d'énergie fut le `r format(date_max, "%d %B %Y")` pour un total de `r prod_max` Wh.
 
-À l'inverse, le `r format(date_min, "%d %B %Y")` les panneaux ont produit la plus faible quantité d'énergie (`r prod_min` kWh).
+À l'inverse, le `r format(date_min, "%d %B %Y")` les panneaux ont produit la plus faible quantité d'énergie (`r prod_min` Wh).
 
 ```{r}
 #| label: Graph_prod_quot
@@ -109,7 +109,7 @@ ggplot(quot, aes(x = date)) +
 
 ```
 
-Comparaison entre le dernier jour (`r format(hier, "%d %B %Y")`; `r prod_hier` kWh) et le jour de production max. `r format(date_max, "%d %B %Y")`
+Comparaison entre le dernier jour (`r format(hier, "%d %B %Y")`; `r prod_hier` Wh) et le jour de production max. `r format(date_max, "%d %B %Y")`
 
 ```{r}
 #| label: Graph_prod_quot_2
@@ -195,7 +195,7 @@ setorder(tab_moins, production)
 
 **Les 10 meilleurs jours**
 
-| Date                   | Production (en kWh)          |
+| Date                   | Production (en Wh)          |
 |------------------------|------------------------------|
 | `r tab_plus[1, date]`  | `r tab_plus[1, production]`  |
 | `r tab_plus[2, date]`  | `r tab_plus[2, production]`  |
@@ -210,7 +210,7 @@ setorder(tab_moins, production)
 
 **Les 10 moins bons jours**
 
-| Date                    | Production (en kWh)           |
+| Date                    | Production (en Wh)           |
 |-------------------------|-------------------------------|
 | `r tab_moins[1, date]`  | `r tab_moins[1, production]`  |
 | `r tab_moins[2, date]`  | `r tab_moins[2, production]`  |
