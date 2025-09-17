@@ -28,8 +28,8 @@ library(lubridate)
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
 
-#ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
-ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
+#ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 
 ## Lecture des données de base
@@ -55,6 +55,7 @@ prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Pr
 # Date aujourd'hui
 auj <- Sys.Date()
 hier <- auj - 1
+j90 <- auj - 90
 
 # Données quotidiennes
 quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
@@ -102,10 +103,12 @@ Le jour où les panneaux ont produit le plus d'énergie fut le `r format(date_ma
 #| echo: false
 #| warning: false
 
+quot2 <- subset(quot, date >= j90)
+
 # Quotidien
 ggplot(quot, aes(x = date)) +
   geom_bar(aes(y = production), stat = "identity", fill = "#a7a824") + 
-  labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
+  labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne (90 derniers jours)")
 
 ```
 
