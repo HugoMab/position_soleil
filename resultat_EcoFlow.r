@@ -107,7 +107,7 @@ ggplot() +
   geom_col(data = df_barre, aes(x = Heure, y = Production), fill = "#a7a824", alpha = 0.75) +
   geom_line(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700") +
   geom_point(data = df_ligne, aes(x = Heure, y = Production), color = "#ffd700", size = 2) +
-#  geom_hline(yintercept = 180, linetype = "dashed", color = "khaki3") +
+# geom_hline(yintercept = 180, linetype = "dashed", color = "khaki3") +
   labs(title = "Production horaire des panneaux solaires",
        x = "Heure de la journée",
        y = "Production (Wh)", 
@@ -119,15 +119,24 @@ ggplot() +
 
 # Résumés des production hebdomadaires, mensuels, timestrielles, etc.
 prod_hebd <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("semaine", "an")][order(semaine, an)]
+prod_hebd <- prod_hebd[2:.N, ]
 prod_mens <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("mois", "an")][order(mois, an)]
+prod_mens <- prod_mens[2:.N,]
 prod_trim <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("trim", "an")][order(trim, an)]
+prod_trim <- prod_trim[2:.N,]
 prod_an <- quot[, .(prod_kWh = (sum(production)/1000)), by = "an"][order(an)]
+
+# Calcul d'une moyenne
+mean_prod_hebd = mean(prod_hebd[, prod_kWh])
+mean_prod_mens = mean(prod_mens[, prod_kWh])
+
 
 
 ## Graphique
 # Hebdomadaire
 ggplot() +
   geom_col(data = prod_hebd, aes(x = semaine, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
+  geom_hline(yintercept = mean_prod_hebd, linetype = "dashed", color = "khaki3") +
   labs(title = "Production hebdomadaire (en kWh)",
        x = "Semaine",
        y = "Production (kWh)") +
@@ -138,10 +147,11 @@ ggplot() +
 # Mensuel
 ggplot() +
   geom_col(data = prod_mens, aes(x = mois, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
+  geom_hline(yintercept = mean_prod_mens, linetype = "dashed", color = "khaki3") +
   labs(title = "Production mensuelle (en kWh)",
        x = "Mois",
        y = "Production (kWh)") +
-  scale_x_continuous(breaks = seq(5,6,1)) +
+  scale_x_continuous(breaks = seq(5,10,1)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 
