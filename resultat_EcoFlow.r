@@ -95,7 +95,7 @@ mean_prod_quot = mean(quot[, production])
 # Quotidien
 ggplot(quot, aes(x = date)) +
   geom_bar(aes(y = production), stat = "identity", fill = "#a7a824") + 
-  geom_hline(yintercept = mean_prod_quot, linetype = "dotdash", color = "salmon4") +
+  geom_hline(yintercept = mean_prod_quot, linetype = "dotdash", color = "khaki4") +
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 jour_ligne <- date_max
