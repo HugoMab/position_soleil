@@ -89,10 +89,13 @@ str(prod)
 
 
 ## Graphiques
+quot <- quot[3:.N,]
+mean_prod_quot = mean(quot[, production])
 
 # Quotidien
 ggplot(quot, aes(x = date)) +
   geom_bar(aes(y = production), stat = "identity", fill = "#a7a824") + 
+  geom_hline(yintercept = mean_prod_quot, linetype = "dotdash", color = "salmon4") +
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne")
 
 jour_ligne <- date_max
@@ -136,7 +139,7 @@ mean_prod_mens = mean(prod_mens[, prod_kWh])
 # Hebdomadaire
 ggplot() +
   geom_col(data = prod_hebd, aes(x = semaine, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
-  geom_hline(yintercept = mean_prod_hebd, linetype = "dashed", color = "khaki3") +
+  geom_hline(yintercept = mean_prod_hebd, linetype = "dashed", color = "khaki4") +
   labs(title = "Production hebdomadaire (en kWh)",
        x = "Semaine",
        y = "Production (kWh)") +
@@ -147,7 +150,7 @@ ggplot() +
 # Mensuel
 ggplot() +
   geom_col(data = prod_mens, aes(x = mois, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
-  geom_hline(yintercept = mean_prod_mens, linetype = "dashed", color = "khaki3") +
+  geom_hline(yintercept = mean_prod_mens, linetype = "dashed", color = "khaki4") +
   labs(title = "Production mensuelle (en kWh)",
        x = "Mois",
        y = "Production (kWh)") +
