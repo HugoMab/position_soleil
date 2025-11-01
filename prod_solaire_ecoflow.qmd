@@ -145,7 +145,7 @@ ggplot() +
 
 ```
 
-### Graphiques pour la production hebdomadaire et mensuelle.
+### Graphiques pour la production hebdomadaire et mensuelle
 
 ```{r}
 #| label: Graph_3
