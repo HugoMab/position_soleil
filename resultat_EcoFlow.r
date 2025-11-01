@@ -90,7 +90,7 @@ str(prod)
 
 ## Graphiques
 quot <- quot[3:.N,]
-mean_prod_quot = mean(quot[, production])
+(mean_prod_quot = mean(quot[, production]))
 
 # Quotidien
 ggplot(quot, aes(x = date)) +
@@ -130,8 +130,8 @@ prod_trim <- prod_trim[2:.N,]
 prod_an <- quot[, .(prod_kWh = (sum(production)/1000)), by = "an"][order(an)]
 
 # Calcul d'une moyenne
-mean_prod_hebd = mean(prod_hebd[, prod_kWh])
-mean_prod_mens = mean(prod_mens[, prod_kWh])
+(mean_prod_hebd = mean(prod_hebd[, prod_kWh]))
+(mean_prod_mens = mean(prod_mens[, prod_kWh]))
 
 
 
