@@ -154,7 +154,7 @@ ggplot() +
   labs(title = "Production mensuelle (en kWh)",
        x = "Mois",
        y = "Production (kWh)") +
-  scale_x_continuous(breaks = seq(5,10,1)) +
+  scale_x_continuous(breaks = seq(5,11,1)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 
