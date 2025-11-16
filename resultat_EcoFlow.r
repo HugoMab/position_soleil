@@ -36,6 +36,12 @@ quot <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="qu
 # Résultats détaillés (horaires)
 prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Production", colNames = TRUE, detectDates = TRUE, startRow = 1))
 
+# Consommation quotidienne
+conso_quot <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Shelly_quotidien", colNames = TRUE, detectDates = TRUE, startRow = 1))
+
+# Consommation détaillée (horaires)
+conso_horaire <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Shelly_horaire", colNames = TRUE, detectDates = TRUE, startRow = 1))
+
 
 # ----------------------- #
 # Préparation des données #
@@ -50,6 +56,12 @@ quot[an == 2025 & date >= "2025-06-22", prix_achat := .3084][an == 2025 & date >
 
 # Donnée horaires
 prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
+
+# Conso quotidienne
+conso_quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
+
+# Conso horaire
+conso_horaire[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
 
 
 ## Format long
@@ -213,4 +225,33 @@ tab_moins <- quot2[(.N - 9):.N,]
 
 print(tab_plus)
 print(tab_moins)
+
+
+##############################
+# Analyse de la consommation #
+##############################
+
+# Journée production plus élevée
+(date_max <- conso_quot[which.max(conso_quot[, consommation]), date])
+(date_min <- conso_quot[which.min(conso_quot[, consommation]), date])
+
+
+## Graphiques
+(mean_conso_quot = mean(conso_quot[, consommation]))
+(sd_conso_quot = sd(conso_quot[, consommation]))
+
+# Quotidien
+ggplot(conso_quot, aes(x = date)) +
+  geom_bar(aes(y = consommation), stat = "identity", fill = "#a7a824") + 
+  geom_hline(yintercept = mean_conso_quot, linetype = "dotdash", color = "khaki4") +
+  labs(x = "Date", y = "Consommation (en Wh)", title = "Consommation quotidienne")
+
+
+
+jour_ligne <- date_max
+jour_barre <- auj - 0
+#jour_barre <- "2025-05-24"
+
+df_ligne <- subset(df_long, date == jour_ligne)
+df_barre <- subset(df_long, date == jour_barre)
 
