@@ -172,7 +172,10 @@ mean_prod_mens = mean(prod_mens[1:(.N-1), prod_kWh])
 ggplot() +
   geom_col(data = prod_hebd, aes(x = semaine, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
   geom_hline(yintercept = mean_prod_hebd, linetype = "dashed", color = "khaki4") +
-  labs(title = "Production hebdomadaire (en kWh)",
+  geom_text(data = prod_hebd,
+            aes(x = semaine, y = prod_kWh, label = round(prod_kWh)),
+            vjust = 1.3,  # place le texte au-dessus des barres
+            size = 4) +labs(title = "Production hebdomadaire (en kWh)",
        x = "Semaine",
        y = "Production (kWh)") +
   scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
