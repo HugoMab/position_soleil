@@ -273,7 +273,6 @@ ggplot(conso_quot, aes(x = date)) +
 
 jour_ligne <- date_max
 jour_barre <- conso_quot[.N, date]
-#jour_barre <- "2025-05-24"
 
 df_ligne <- subset(df_prod_long, date == jour_ligne)
 df_barre <- subset(df_prod_long, date == jour_barre)
@@ -283,7 +282,7 @@ ggplot() +
   geom_col(data = df_barre, aes(x = Heure, y = Consommation), fill = "#ca8f9c", alpha = 0.75) +
   geom_line(data = df_ligne, aes(x = Heure, y = Consommation), color = "violetred") +
   geom_point(data = df_ligne, aes(x = Heure, y = Consommation), color = "violetred", size = 2) +
-  labs(title = "Production horaire des panneaux solaires",
+  labs(title = "Consommation électrique horaire",
        x = "Heure",
        y = "Consommation (Wh)", 
        subtitle = paste("Barres =", jour_barre, "| Ligne =", jour_ligne)) +
