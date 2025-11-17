@@ -175,7 +175,8 @@ ggplot() +
   geom_text(data = prod_hebd,
             aes(x = semaine, y = prod_kWh, label = round(prod_kWh)),
             vjust = 1.3,  # place le texte au-dessus des barres
-            size = 4) +labs(title = "Production hebdomadaire (en kWh)",
+            size = 4) +
+  labs(title = "Production hebdomadaire (en kWh)",
        x = "Semaine",
        y = "Production (kWh)") +
   scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
@@ -210,7 +211,6 @@ ggplot() +
 
 Alors que la production mensuelle moyenne (à partir de juin 2025; sans le mois en cours) est de `r round(mean_prod_mens,1)` kWh.
 
-
 ### Classements des 10 jours les plus productifs et les moins productifs
 
 ```{r}
@@ -231,7 +231,7 @@ setorder(tab_moins, production)
 
 **Les 10 meilleurs jours**
 
-| Date                   | Production (en Wh)          |
+| Date                   | Production (en Wh)           |
 |------------------------|------------------------------|
 | `r tab_plus[1, date]`  | `r tab_plus[1, production]`  |
 | `r tab_plus[2, date]`  | `r tab_plus[2, production]`  |
@@ -246,7 +246,7 @@ setorder(tab_moins, production)
 
 **Les 10 moins bons jours**
 
-| Date                    | Production (en Wh)           |
+| Date                    | Production (en Wh)            |
 |-------------------------|-------------------------------|
 | `r tab_moins[1, date]`  | `r tab_moins[1, production]`  |
 | `r tab_moins[2, date]`  | `r tab_moins[2, production]`  |
@@ -258,3 +258,154 @@ setorder(tab_moins, production)
 | `r tab_moins[8, date]`  | `r tab_moins[8, production]`  |
 | `r tab_moins[9, date]`  | `r tab_moins[9, production]`  |
 | `r tab_moins[10, date]` | `r tab_moins[10, production]` |
+
+
+## Consommation électrique
+
+La consommation est mesurée par le *smart meter* Shelly Pro 3 EM. Ce dispositif ne mesure que la consommation dans l'appartement. Sont donc exclus la consommation dans la cave/buanderie (lave-linge et sèche-linge) ainsi que le garage (borne de recharge).
+
+```{r}
+#| label: preparation_conso
+#| echo: false
+#| warning: false
+
+## Chargement des données
+# Consommation quotidienne
+conso_quot <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Shelly_quotidien", colNames = TRUE, detectDates = TRUE, startRow = 1))
+
+# Consommation détaillée (horaires)
+conso_horaire <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Shelly_horaire", colNames = TRUE, detectDates = TRUE, startRow = 1))
+
+## Ajout des variables semaines, mois, trimestres, an
+# Conso quotidienne
+conso_quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
+
+# Conso horaire
+conso_horaire[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
+
+
+## Format long
+df_prod_long <- conso_horaire %>%
+  pivot_longer(
+    cols = -c(date, an, mois, semaine, trim, jour), # Toutes les colonnes sauf dates
+    names_to = "Heure", # Nouvelle colonne pour les heures
+    values_to = "Consommation") %>%  # Valeurs de production horaire
+  mutate(
+    Heure = as.integer(Heure),
+    date = as.Date(date)
+  )
+
+df_prod_long <- as.data.table(df_prod_long)
+
+# Journée production plus élevée
+date_max <- conso_quot[which.max(conso_quot[, consommation]), date]
+date_min <- conso_quot[which.min(conso_quot[, consommation]), date]
+
+
+## Graphiques
+mean_conso_quot = mean(conso_quot[, consommation])
+sd_conso_quot = sd(conso_quot[, consommation])
+
+jour_ligne <- date_max
+jour_barre <- conso_quot[.N, date]
+
+df_ligne <- subset(df_prod_long, date == jour_ligne)
+df_barre <- subset(df_prod_long, date == jour_barre)
+
+```
+
+### Consommation électrique quotidienne et horaire
+
+```{r}
+#| label: graphique_conso
+#| echo: false
+#| warning: false
+
+# Quotidien
+ggplot(conso_quot, aes(x = date)) +
+  geom_bar(aes(y = consommation), stat = "identity", fill = "#ca8f9c") + 
+  geom_hline(yintercept = mean_conso_quot, linetype = "dotdash", color = "violetred") +
+  labs(x = "Date", y = "Consommation (en Wh)", title = "Consommation quotidienne")
+
+# Horaire
+
+# Graphique horaire
+ggplot() +
+  geom_col(data = df_barre, aes(x = Heure, y = Consommation), fill = "#ca8f9c", alpha = 0.75) +
+  geom_line(data = df_ligne, aes(x = Heure, y = Consommation), color = "violetred") +
+  geom_point(data = df_ligne, aes(x = Heure, y = Consommation), color = "violetred", size = 2) +
+  labs(title = "Consommation électrique horaire",
+       x = "Heure",
+       y = "Consommation (Wh)", 
+       subtitle = paste("Barres =", jour_barre, "| Ligne =", jour_ligne)) +
+  scale_x_continuous(breaks = seq(0, 23, 1)) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1))
+
+
+```
+
+### Consommation électrique hebdomadaire et mensuelle
+
+```{r}
+#| label: graphique_conso1
+#| echo: false
+#| warning: false
+
+## Résumés des consommations hebdomadaires, mensuels, timestrielles, etc.
+conso_hebd <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("semaine", "an")][order(semaine, an)]
+conso_hebd <- conso_hebd[2:.N, ]
+conso_mens <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("mois", "an")][order(mois, an)]
+conso_mens <- conso_mens[2:.N,]
+conso_trim <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("trim", "an")][order(trim, an)]
+conso_trim <- conso_trim[2:.N,]
+conso_an <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "an"][order(an)]
+
+# Calcul d'une moyenne
+mean_conso_hebd = mean(conso_hebd[1:(.N-1), conso_kWh])
+mean_conso_mens = mean(conso_mens[1:(.N-1), conso_kWh])
+
+
+## Graphique
+# Hebdomadaire
+ggplot() +
+  geom_col(data = conso_hebd, aes(x = semaine, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
+  geom_hline(yintercept = mean_conso_hebd, linetype = "dashed", color = "violetred") +
+    geom_text(data = conso_hebd,
+            aes(x = semaine, y = conso_kWh, label = round(conso_kWh)),
+            vjust = 1.3,  # place le texte au-dessus des barres
+            size = 4) +
+  labs(title = "Consommation hebdomadaire (en kWh)",
+       x = "Semaine",
+       y = "Consommation (kWh)") +
+  scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
+
+```
+
+La consommation hebdomadaire moyenne (sans la semaine en cours) est de `r round(mean_conso_hebd,3)` kWh.
+
+```{r}
+#| label: graphique_conso2
+#| echo: false
+#| warning: false
+
+# Mensuel
+ggplot() +
+  geom_col(data = conso_mens, aes(x = mois, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
+ # geom_hline(yintercept = mean_conso_mens, linetype = "dashed", color = "ca8f9c") +
+  geom_text(data = conso_mens,
+            aes(x = mois, y = conso_kWh, label = round(conso_kWh)),
+            vjust = 1.3,  # place le texte au-dessus des barres
+            size = 4) +
+  labs(title = "Consommation mensuelle (en kWh)",
+       x = "Mois",
+       y = "Consommation (kWh)") +
+  scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
+
+```
+
+Alors que la production mensuelle moyenne (sans le mois en cours) sera calculée dès le mois de décembre.
