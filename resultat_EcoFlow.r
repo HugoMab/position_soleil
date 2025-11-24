@@ -370,25 +370,37 @@ ggplot() +
 
 ## Ne se calcule pas heure par heure.
 ## d'après ChatGPT: Energie consommée / Production photovoltaïque; voir les autres formules si on ajoute les batteries.
+# 
+# # Prod horaire
+# prod_horaire <- subset(prod, date > "2025-10-31" & date < auj)
+# 
+# num_cols <- grep("^[0-9]+$", names(prod_horaire), value = TRUE)
+# setnames(prod_horaire, num_cols, paste0("prod_", num_cols))
+# 
+# 
+# # Conso horaire
+# setnames(conso_horaire, num_cols, paste0("conso_", num_cols))
+# 
+# conso_horaire[, an := NULL][, mois := NULL][, semaine := NULL][, trim := NULL][, jour := NULL]
+# 
+# # Fusion et calculs
+# dt_auto <- merge(prod_horaire, conso_horaire, by="date")
+# 
+# dt_auto[, paste0("ratio_", 0:23) :=
+#           dt_auto[, paste0("prod_", 0:23), with = FALSE] /
+#           dt_auto[, paste0("conso_", 0:23), with = FALSE]]
+# 
+# auto_cons <- subset(dt_auto, select=c('date', paste0("ratio_", 0:23), 'an', 'mois', 'semaine', 'trim', 'jour')) 
 
-# Prod horaire
-prod_horaire <- subset(prod, date > "2025-10-31" & date < auj)
 
-num_cols <- grep("^[0-9]+$", names(prod_horaire), value = TRUE)
-setnames(prod_horaire, num_cols, paste0("prod_", num_cols))
+# Consommation quotidienne
+conso_quot
 
+# Production quotidienne
+prod_quot <- subset(quot, date > "2025-10-31" & date < auj, select=c('date', 'production', 'var_journ_prod'))
 
-# Conso horaire
-setnames(conso_horaire, num_cols, paste0("conso_", num_cols))
+# Fusion
+dt_auto <- merge(prod_quot, conso_quot, by="date")
 
-conso_horaire[, an := NULL][, mois := NULL][, semaine := NULL][, trim := NULL][, jour := NULL]
-
-# Fusion et calculs
-dt_auto <- merge(prod_horaire, conso_horaire, by="date")
-
-dt_auto[, paste0("ratio_", 0:23) :=
-          dt_auto[, paste0("prod_", 0:23), with = FALSE] /
-          dt_auto[, paste0("conso_", 0:23), with = FALSE]]
-
-auto_cons <- subset(dt_auto, select=c('date', paste0("ratio_", 0:23), 'an', 'mois', 'semaine', 'trim', 'jour')) 
-
+# Calculs
+dt_auto[, auto_conso := (consommation / (1000*production))*100]
