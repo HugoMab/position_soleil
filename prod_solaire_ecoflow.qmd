@@ -259,6 +259,22 @@ setorder(tab_moins, production)
 | `r tab_moins[9, date]`  | `r tab_moins[9, production]`  |
 | `r tab_moins[10, date]` | `r tab_moins[10, production]` |
 
+### Résultats divers
+```{r}
+#| label: tabl2
+#| echo: false
+#| warning: false
+
+# Nombre de jours inférieur ou supérieur à xx kWh / pour le futur pourra être transformé en tableau
+nb_jour_inf <- quot[production < 1000, .N]
+nb_jour_sup <- quot[production > 5000, .N]
+
+```
+
+Nombre de jours avec production supérieure à 5 kWh: `r nb_jour_inf`
+
+Nombre de jours avec production inférieure à 1 kWh: `r nb_jour_sup`
+
 
 ## Consommation électrique
 
@@ -409,3 +425,87 @@ ggplot() +
 ```
 
 Alors que la consommation mensuelle moyenne (sans le mois en cours) sera calculée dès le mois de décembre.
+
+
+## Autoconsommation
+
+```{r}
+#| label: autoconso1
+#| echo: false
+#| warning: false
+
+# # Prod horaire
+prod_horaire <- subset(prod, date > "2025-10-31" & date < auj)
+
+num_cols <- grep("^[0-9]+$", names(prod_horaire), value = TRUE)
+setnames(prod_horaire, num_cols, paste0("prod_", num_cols))
+
+
+# # Conso horaire
+setnames(conso_horaire, num_cols, paste0("conso_", num_cols))
+
+conso_horaire[, an := NULL][, mois := NULL][, semaine := NULL][, trim := NULL][, jour := NULL]
+
+# Fusion
+dt_auto <- merge(prod_horaire, conso_horaire, by="date")
+
+# Calculs
+prod_cols  <- paste0("prod_", 0:23)
+conso_cols <- paste0("conso_", 0:23)
+
+prod_dt  <- dt_auto[, ..prod_cols]
+conso_dt <- dt_auto[, ..conso_cols]
+
+# Autoconsommation horaire
+AC_dt <- as.data.table(Map(pmin, prod_dt, conso_dt))
+
+setnames(AC_dt, paste0("AC_", 0:23))
+
+dt_auto <- cbind(dt_auto, AC_dt)
+
+# Autoconsommation totale
+dt_auto[, AC_total := rowSums(.SD), .SDcols = paste0("AC_", 0:23)]
+
+# Total production PV
+dt_auto[, P_pv_total := rowSums(.SD), .SDcols = paste0("prod_", 0:23)]
+
+# Total consommation
+dt_auto[, P_load_total := rowSums(.SD), .SDcols = paste0("conso_", 0:23)]
+
+# Taux d'autoconsommation
+dt_auto[, tx_auto := ifelse(P_pv_total == 0, 0, (AC_total/P_pv_total)*100)]
+
+# Taux de couverture
+dt_auto[, tx_couverture := (AC_total/P_load_total)*100]
+
+```
+
+```{r}
+#| label: autoconso_graph1
+#| echo: false
+#| warning: false
+
+dt <- subset(dt_auto, select=c('date', 'tx_auto', 'tx_couverture'))
+
+dt_long <- melt(
+  dt,
+  id.vars = "date",
+  measure.vars = c("tx_auto", "tx_couverture"),
+  variable.name = "type",
+  value.name = "taux"
+)
+
+# Graphique taux d'autoconsommation et de couverture par jour
+ggplot(data=dt_long, aes(x = date, y = taux, fill = type)) +
+  geom_col(position = position_dodge()) +
+  labs(title = "Autoconsommation", x = "Date", y = "Taux (en %)") +
+  scale_fill_manual(name = "Taux",
+    values = c("tx_auto" = "#1b9e77", "tx_couverture" = "#d95f02"),
+    labels = c("tx_auto" = "Autoconsommation", "tx_couverture" = "Couverture")) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = "bottom")
+
+
+```
+
