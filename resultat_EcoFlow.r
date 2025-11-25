@@ -18,12 +18,12 @@ library(lubridate)
 
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
-# ddpath  <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
-ddpath  <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+ddpath  <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
+# ddpath  <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 # Chemins d'accès aux dossiers de travail
-# wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/" 
-wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop
+wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/"
+# wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop
 
 # fixe le dossier de travail et de données
 # setwd(wdpath)
@@ -368,7 +368,6 @@ ggplot() +
 # Autoconsommation  #
 #####################
 
-## Ne se calcule pas heure par heure.
 ## d'après ChatGPT: Energie consommée / Production photovoltaïque; voir les autres formules si on ajoute les batteries.
 
 # # Prod horaire
@@ -416,19 +415,24 @@ dt_auto[, tx_auto := ifelse(P_pv_total == 0, 0, (AC_total/P_pv_total)*100)]
 dt_auto[, tx_couverture := (AC_total/P_load_total)*100]
 
 
+dt <- subset(dt_auto, select=c('date', 'tx_auto', 'tx_couverture'))
 
+dt_long <- melt(
+  dt,
+  id.vars = "date",
+  measure.vars = c("tx_auto", "tx_couverture"),
+  variable.name = "type",
+  value.name = "taux"
+)
 
+# Graphique taux d'autoconsommation et de couverture par jour
+ggplot(data=dt_long, aes(x = date, y = taux, fill = type)) +
+  geom_col(position = position_dodge()) +
+  labs(title = "Autoconsommation", x = "Date", y = "Taux (en %)") +
+  scale_fill_manual(name = "Taux",
+    values = c("tx_auto" = "#1b9e77", "tx_couverture" = "#d95f02"),
+    labels = c("tx_auto" = "Autoconsommation", "tx_couverture" = "Couverture")) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = "bottom")
 
-
-
-# Consommation quotidienne
-conso_quot
-
-# Production quotidienne
-prod_quot <- subset(quot, date > "2025-10-31" & date < auj, select=c('date', 'production', 'var_journ_prod'))
-
-# Fusion
-dt_auto <- merge(prod_quot, conso_quot, by="date")
-
-# Calculs
-dt_auto[, auto_conso := (consommation / (1000*production))*100]
