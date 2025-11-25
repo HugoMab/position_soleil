@@ -18,12 +18,12 @@ library(lubridate)
 
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
-ddpath  <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
-# ddpath  <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+# ddpath  <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
+ddpath  <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 # Chemins d'accès aux dossiers de travail
-wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/" 
-# wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop 
+# wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/" 
+wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop
 
 # fixe le dossier de travail et de données
 # setwd(wdpath)
@@ -370,27 +370,55 @@ ggplot() +
 
 ## Ne se calcule pas heure par heure.
 ## d'après ChatGPT: Energie consommée / Production photovoltaïque; voir les autres formules si on ajoute les batteries.
-# 
+
 # # Prod horaire
-# prod_horaire <- subset(prod, date > "2025-10-31" & date < auj)
-# 
-# num_cols <- grep("^[0-9]+$", names(prod_horaire), value = TRUE)
-# setnames(prod_horaire, num_cols, paste0("prod_", num_cols))
-# 
-# 
+prod_horaire <- subset(prod, date > "2025-10-31" & date < auj)
+
+num_cols <- grep("^[0-9]+$", names(prod_horaire), value = TRUE)
+setnames(prod_horaire, num_cols, paste0("prod_", num_cols))
+
+
 # # Conso horaire
-# setnames(conso_horaire, num_cols, paste0("conso_", num_cols))
-# 
-# conso_horaire[, an := NULL][, mois := NULL][, semaine := NULL][, trim := NULL][, jour := NULL]
-# 
-# # Fusion et calculs
-# dt_auto <- merge(prod_horaire, conso_horaire, by="date")
-# 
-# dt_auto[, paste0("ratio_", 0:23) :=
-#           dt_auto[, paste0("prod_", 0:23), with = FALSE] /
-#           dt_auto[, paste0("conso_", 0:23), with = FALSE]]
-# 
-# auto_cons <- subset(dt_auto, select=c('date', paste0("ratio_", 0:23), 'an', 'mois', 'semaine', 'trim', 'jour')) 
+setnames(conso_horaire, num_cols, paste0("conso_", num_cols))
+
+conso_horaire[, an := NULL][, mois := NULL][, semaine := NULL][, trim := NULL][, jour := NULL]
+
+# Fusion
+dt_auto <- merge(prod_horaire, conso_horaire, by="date")
+
+# Calculs
+prod_cols  <- paste0("prod_", 0:23)
+conso_cols <- paste0("conso_", 0:23)
+
+prod_dt  <- dt_auto[, ..prod_cols]
+conso_dt <- dt_auto[, ..conso_cols]
+
+# Autoconsommation horaire
+AC_dt <- as.data.table(Map(pmin, prod_dt, conso_dt))
+
+setnames(AC_dt, paste0("AC_", 0:23))
+
+dt_auto <- cbind(dt_auto, AC_dt)
+
+# Autoconsommation totale
+dt_auto[, AC_total := rowSums(.SD), .SDcols = paste0("AC_", 0:23)]
+
+# Total production PV
+dt_auto[, P_pv_total := rowSums(.SD), .SDcols = paste0("prod_", 0:23)]
+
+# Total consommation
+dt_auto[, P_load_total := rowSums(.SD), .SDcols = paste0("conso_", 0:23)]
+
+# Taux d'autoconsommation
+dt_auto[, tx_auto := ifelse(P_pv_total == 0, 0, (AC_total/P_pv_total)*100)]
+
+# Taux de couverture
+dt_auto[, tx_couverture := (AC_total/P_load_total)*100]
+
+
+
+
+
 
 
 # Consommation quotidienne
