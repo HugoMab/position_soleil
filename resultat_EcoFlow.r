@@ -18,12 +18,12 @@ library(lubridate)
 
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
-ddpath  <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
-# ddpath  <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+# ddpath  <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
+ddpath  <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 # Chemins d'accès aux dossiers de travail
-wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/"
-# wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop
+# wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/"
+wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop
 
 # fixe le dossier de travail et de données
 # setwd(wdpath)
@@ -166,7 +166,7 @@ ggplot() +
   labs(title = "Production mensuelle (en kWh)",
        x = "Mois",
        y = "Production (kWh)") +
-  scale_x_continuous(breaks = seq(5,11,1)) +
+  scale_x_continuous(breaks = seq(5,12,1)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 
@@ -295,7 +295,7 @@ ggplot() +
 conso_hebd <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("semaine", "an")][order(semaine, an)]
 conso_hebd <- conso_hebd[2:.N, ]
 conso_mens <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("mois", "an")][order(mois, an)]
-conso_mens <- conso_mens[2:.N,]
+# conso_mens <- conso_mens[2:.N,] # Inutile, dès 1er novembre
 conso_trim <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("trim", "an")][order(trim, an)]
 conso_trim <- conso_trim[2:.N,]
 conso_an <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "an"][order(an)]
