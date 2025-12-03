@@ -28,8 +28,8 @@ library(lubridate)
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
 
-# ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
-ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
+# ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 
 ## Lecture des données de base
@@ -425,6 +425,38 @@ ggplot() +
 ```
 
 Alors que la consommation mensuelle moyenne (sans le mois en cours) est de `r round(mean_conso_mens,3)` kWh.
+
+
+## Production et consommation
+
+Graphique combiné production et consommation électrique du dernier jour complet.
+
+```{r}
+#| label: graphique_conso_prod
+#| echo: false
+#| warning: false
+
+# Dernier jour complet: auj-1
+jour_aff <- auj-1
+
+# Sélection des données
+df_conso_aff <- subset(df_prod_long, date == jour_aff, select=c('date', 'Heure', 'Consommation'))
+df_prod_aff <- subset(df_long, date == jour_aff, select=c('date', 'Heure', 'Production'))
+
+
+# Graphique
+ggplot() +
+  geom_area(data = df_conso_aff, aes(x = Heure, y = Consommation, fill = "Consommation"), alpha = 0.5) +
+  geom_area(data = df_prod_aff, aes(x = Heure, y = Production, fill = "Production"), alpha = 0.5) +
+  scale_fill_manual(name = "", values = c("Production" = "#a7a824", "Consommation" = "#ca8f9c")) +
+  labs(title = paste0("Production et consommation horaire du ", jour_aff), x = "Heure", y = "Wh") +
+  scale_x_continuous(breaks = seq(0, 23, 1)) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), legend.position = "bottom")
+
+```
+
+
 
 
 ## Autoconsommation

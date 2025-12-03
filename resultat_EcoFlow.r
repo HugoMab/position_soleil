@@ -18,12 +18,12 @@ library(lubridate)
 
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
-# ddpath  <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
-ddpath  <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+ddpath  <- "C:/Users/doglo/OneDrive/Stat_R/Data/"
+# ddpath  <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 # Chemins d'accès aux dossiers de travail
-# wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/"
-wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop
+wdpath  <- "C:/Users/doglo/OneDrive/Stat_R/work/"
+# wdpath  <- "C:/Users/Hugo/OneDrive/Stat_R/work/" # Desktop
 
 # fixe le dossier de travail et de données
 # setwd(wdpath)
@@ -362,6 +362,31 @@ ggplot() +
   scale_x_continuous(breaks = seq(0, 23, 1)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), legend.position = "bottom")
+
+
+################################################
+# Graphique combiné Production et consommation #
+################################################
+
+# Dernier jour complet: auj-1
+jour_aff <- auj-1
+# jour_aff <- "2025-11-20"
+
+# Sélection des données
+df_conso_aff <- subset(df_prod_long, date == jour_aff, select=c('date', 'Heure', 'Consommation'))
+df_prod_aff <- subset(df_long, date == jour_aff, select=c('date', 'Heure', 'Production'))
+
+
+# Graphique
+ggplot() +
+  geom_area(data = df_conso_aff, aes(x = Heure, y = Consommation, fill = "Consommation"), alpha = 0.5) +
+  geom_area(data = df_prod_aff, aes(x = Heure, y = Production, fill = "Production"), alpha = 0.5) +
+  scale_fill_manual(name = "", values = c("Consommation" = "#ca8f9c", "Production" = "#a7a824")) +
+  labs(title = paste0("Production et consommation horaire du ", jour_aff), x = "Heure", y = "Wh") +
+  scale_x_continuous(breaks = seq(0, 23, 1)) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), legend.position = "bottom")
+
 
 
 #####################
