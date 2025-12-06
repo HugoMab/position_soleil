@@ -320,6 +320,7 @@ date_min <- conso_quot[which.min(conso_quot[, consommation]), date]
 
 ## Graphiques
 mean_conso_quot = mean(conso_quot[, consommation])
+mean_conso_kwh = mean_conso_quot/1000
 sd_conso_quot = sd(conso_quot[, consommation])
 
 jour_ligne <- date_max
@@ -360,6 +361,10 @@ ggplot() +
 
 
 ```
+
+
+La consommation quotidienne moyenne est de `r round(mean_conso_kwh,3)` kWh.
+
 
 ### Consommation électrique hebdomadaire et mensuelle
 
