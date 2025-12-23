@@ -440,7 +440,10 @@ dt_auto[, tx_auto := ifelse(P_pv_total == 0, 0, (AC_total/P_pv_total)*100)]
 dt_auto[, tx_couverture := (AC_total/P_load_total)*100]
 
 
-dt <- subset(dt_auto, select=c('date', 'tx_auto', 'tx_couverture'))
+date_ref_max <- max(dt_auto[, date])
+date_ref_min = date_ref_max - 31 
+
+dt <- subset(dt_auto, date >= date_ref_min, select=c('date', 'tx_auto', 'tx_couverture'))
 
 dt_long <- melt(
   dt,
@@ -461,3 +464,34 @@ ggplot(data=dt_long, aes(x = date, y = taux, fill = type)) +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
   theme(legend.position = "bottom")
 
+
+## Autoconsommation et couverture par jour
+
+# Préparation des données
+dt <- subset(dt_auto, select = c(date, AC_total, P_pv_total, P_load_total))
+dt[, mois := format(date, "%Y-%m")]
+
+dt_mois <- dt[, .(prod_kWh = sum(P_pv_total, na.rm = TRUE), conso_kWh = sum(P_load_total, na.rm = TRUE), auto_kWh = sum(AC_total, na.rm = TRUE)), by = mois]
+
+# Calcul des taux mensuels
+dt_mois[, ':=' (taux_autoconso_mens = (auto_kWh / prod_kWh) * 100, taux_couverture_mens = (auto_kWh / conso_kWh) * 100)]
+
+# Préparation du graphique
+dt_long <- melt(
+  dt_mois,
+  id.vars = "mois",
+  measure.vars = c("taux_autoconso_mens", "taux_couverture_mens"),
+  variable.name = "type",
+  value.name = "taux"
+)
+
+# Graphique taux d'autoconsommation et de couverture par jour
+ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
+  geom_col(position = position_dodge()) +
+  labs(title = "Autoconsommation", x = "Date", y = "Taux (en %)") +
+  scale_fill_manual(name = "Taux",
+                    values = c("taux_autoconso_mens" = "#1b9e77", "taux_couverture_mens" = "#d95f02"),
+                    labels = c("taux_autoconso_mens" = "Autoconsommation", "taux_couverture_mens" = "Couverture")) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = "bottom")
