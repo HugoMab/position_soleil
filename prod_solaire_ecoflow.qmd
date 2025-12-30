@@ -575,9 +575,19 @@ dt_long <- melt(
   value.name = "taux"
 )
 
+
 # Graphique taux d'autoconsommation et de couverture par jour
 ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
-  geom_col(position = position_dodge()) +
+  geom_col(position = position_dodge(width = 0.9)) +
+  geom_text(
+    aes(label = paste0(round(taux, 1), " %")),
+    position = position_dodge(width = 0.9),
+    vjust = -0.3,
+    size = 3) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, " %"),
+    expand = expansion(mult = c(0, 0.1))  # espace pour le texte
+    ) +
   labs(title = "Autoconsommation", x = "Date", y = "Taux (en %)") +
   scale_fill_manual(name = "Taux",
                     values = c("taux_autoconso_mens" = "#1b9e77", "taux_couverture_mens" = "#d95f02"),
