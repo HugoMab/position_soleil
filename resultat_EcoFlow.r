@@ -51,8 +51,9 @@ conso_horaire <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), 
 auj <- Sys.Date()
 
 # Données quotidiennes
-quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
+quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))][, mois_an := format(date, "%Y-%m")]
 quot[an == 2025 & date >= "2025-06-22", prix_achat := .3084][an == 2025 & date >= "2025-06-22", prix_vente := .1102]
+quot[an == 2026, prix_achat := .3076][an == 2026, prix_vente := .1102]
 
 # Donnée horaires
 prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
@@ -135,7 +136,9 @@ ggplot() +
 # Résumés des production hebdomadaires, mensuels, timestrielles, etc.
 prod_hebd <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("semaine", "an")][order(semaine, an)]
 prod_hebd <- prod_hebd[2:.N, ]
-prod_mens <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("mois", "an")][order(mois, an)]
+# prod_mens <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("mois", "an")][order(mois, an)]
+# prod_mens <- prod_mens[2:.N,]
+prod_mens <- quot[, .(prod_kWh = (sum(production)/1000)), by = "mois_an"][order(mois_an)]
 prod_mens <- prod_mens[2:.N,]
 prod_trim <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("trim", "an")][order(trim, an)]
 prod_trim <- prod_trim[2:.N,]
@@ -161,12 +164,10 @@ ggplot() +
 
 # Mensuel
 ggplot() +
-  geom_col(data = prod_mens, aes(x = mois, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
+  geom_col(data = prod_mens, aes(x = mois_an, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
   geom_hline(yintercept = mean_prod_mens, linetype = "dashed", color = "khaki4") +
-  labs(title = "Production mensuelle (en kWh)",
-       x = "Mois",
-       y = "Production (kWh)") +
-  scale_x_continuous(breaks = seq(5,12,1)) +
+  labs(title = "Production mensuelle (en kWh)", x = "Mois", y = "Production (kWh)") +
+  # scale_x_continuous(breaks = seq(5,12,1)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 
@@ -295,7 +296,6 @@ ggplot() +
 conso_hebd <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("semaine", "an")][order(semaine, an)]
 conso_hebd <- conso_hebd[2:.N, ]
 conso_mens <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("mois", "an")][order(mois, an)]
-# conso_mens <- conso_mens[2:.N,] # Inutile, dès 1er novembre
 conso_trim <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("trim", "an")][order(trim, an)]
 conso_trim <- conso_trim[2:.N,]
 conso_an <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "an"][order(an)]
