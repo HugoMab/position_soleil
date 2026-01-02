@@ -59,7 +59,7 @@ quot[an == 2026, prix_achat := .3076][an == 2026, prix_vente := .1102]
 prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
 
 # Conso quotidienne
-conso_quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
+conso_quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))][, mois_an := format(date, "%Y-%m")]
 
 # Conso horaire
 conso_horaire[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
@@ -295,7 +295,8 @@ ggplot() +
 ## Résumés des consommations hebdomadaires, mensuels, timestrielles, etc.
 conso_hebd <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("semaine", "an")][order(semaine, an)]
 conso_hebd <- conso_hebd[2:.N, ]
-conso_mens <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("mois", "an")][order(mois, an)]
+# conso_mens <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("mois", "an")][order(mois, an)]
+conso_mens <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "mois_an"][order(mois_an)]
 conso_trim <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("trim", "an")][order(trim, an)]
 conso_trim <- conso_trim[2:.N,]
 conso_an <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "an"][order(an)]
@@ -319,12 +320,10 @@ ggplot() +
 
 # Mensuel
 ggplot() +
-  geom_col(data = conso_mens, aes(x = mois, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
+  geom_col(data = conso_mens, aes(x = mois_an, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
  # geom_hline(yintercept = mean_conso_mens, linetype = "dashed", color = "ca8f9c") +
-  labs(title = "Consommation mensuelle (en kWh)",
-       x = "Mois",
-       y = "Consommation (kWh)") +
-  scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
+  labs(title = "Consommation mensuelle (en kWh)", x = "Mois", y = "Consommation (kWh)") +
+  # scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 

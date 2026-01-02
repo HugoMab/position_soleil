@@ -293,7 +293,7 @@ conso_horaire <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), 
 
 ## Ajout des variables semaines, mois, trimestres, an
 # Conso quotidienne
-conso_quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
+conso_quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))][, mois_an := format(date, "%Y-%m")]
 
 # Conso horaire
 conso_horaire[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
@@ -375,7 +375,7 @@ La consommation quotidienne moyenne est de `r round(mean_conso_kwh,3)` kWh.
 ## Résumés des consommations hebdomadaires, mensuels, timestrielles, etc.
 conso_hebd <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("semaine", "an")][order(semaine, an)]
 conso_hebd <- conso_hebd[2:.N, ]
-conso_mens <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("mois", "an")][order(mois, an)]
+conso_mens <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "mois_an"][order(mois_an)]
 conso_trim <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("trim", "an")][order(trim, an)]
 conso_trim <- conso_trim[2:.N,]
 conso_an <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "an"][order(an)]
@@ -412,17 +412,17 @@ La consommation hebdomadaire moyenne (sans la semaine en cours) est de `r round(
 
 # Mensuel
 ggplot() +
-  geom_col(data = conso_mens, aes(x = mois, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
+  geom_col(data = conso_mens, aes(x = mois_an, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
   geom_hline(yintercept = mean_conso_mens, linetype = "dashed", color = "violetred") +
   geom_text(data = conso_mens,
-            aes(x = mois, y = conso_kWh, label = round(conso_kWh)),
+            aes(x = mois_an, y = conso_kWh, label = round(conso_kWh)),
             vjust = 1.3,  # place le texte au-dessus des barres
             size = 4) +
   labs(title = "Consommation mensuelle (en kWh)",
        x = "Mois",
        y = "Consommation (kWh)") +
   # scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
-  scale_x_continuous(breaks = seq(11,12,1)) +
+  # scale_x_continuous(breaks = seq(11,12,1)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 
