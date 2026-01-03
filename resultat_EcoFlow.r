@@ -52,6 +52,7 @@ auj <- Sys.Date()
 
 # Données quotidiennes
 quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))][, mois_an := format(date, "%Y-%m")]
+quot[, semaine_an := date - (as.integer(strftime(date, "%u")) - 1)]
 quot[an == 2025 & date >= "2025-06-22", prix_achat := .3084][an == 2025 & date >= "2025-06-22", prix_vente := .1102]
 quot[an == 2026, prix_achat := .3076][an == 2026, prix_vente := .1102]
 
@@ -59,7 +60,7 @@ quot[an == 2026, prix_achat := .3076][an == 2026, prix_vente := .1102]
 prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
 
 # Conso quotidienne
-conso_quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))][, mois_an := format(date, "%Y-%m")]
+conso_quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))][, mois_an := format(date, "%Y-%m")][, semaine_an := date - (as.integer(strftime(date, "%u")) - 1)]
 
 # Conso horaire
 conso_horaire[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
@@ -134,10 +135,10 @@ ggplot() +
 
 
 # Résumés des production hebdomadaires, mensuels, timestrielles, etc.
-prod_hebd <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("semaine", "an")][order(semaine, an)]
+prod_hebd <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("semaine", "an")][order(an, semaine)]
 prod_hebd <- prod_hebd[2:.N, ]
-# prod_mens <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("mois", "an")][order(mois, an)]
-# prod_mens <- prod_mens[2:.N,]
+prod_hebd2 <- quot[, .(prod_kWh = (sum(production)/1000)), by = "semaine_an"][order(semaine_an)]
+prod_hebd2 <- prod_hebd2[2:.N, ]
 prod_mens <- quot[, .(prod_kWh = (sum(production)/1000)), by = "mois_an"][order(mois_an)]
 prod_mens <- prod_mens[2:.N,]
 prod_trim <- quot[, .(prod_kWh = (sum(production)/1000)), by = c("trim", "an")][order(trim, an)]
@@ -146,8 +147,8 @@ prod_an <- quot[, .(prod_kWh = (sum(production)/1000)), by = "an"][order(an)]
 
 # Calcul d'une moyenne
 (mean_prod_hebd = mean(prod_hebd[, prod_kWh]))
+(mean_prod_hebd2 = mean(prod_hebd2[, prod_kWh]))
 (mean_prod_mens = mean(prod_mens[, prod_kWh]))
-
 
 
 ## Graphique
@@ -161,6 +162,14 @@ ggplot() +
   scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
+
+ggplot() +
+  geom_col(data = prod_hebd2, aes(x = semaine_an, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
+  geom_hline(yintercept = mean_prod_hebd2, linetype = "dashed", color = "khaki4") +
+  labs(title = "Production hebdomadaire (en kWh)", x = "Semaine", y = "Production (kWh)") +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
+
 
 # Mensuel
 ggplot() +
@@ -295,7 +304,8 @@ ggplot() +
 ## Résumés des consommations hebdomadaires, mensuels, timestrielles, etc.
 conso_hebd <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("semaine", "an")][order(semaine, an)]
 conso_hebd <- conso_hebd[2:.N, ]
-# conso_mens <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("mois", "an")][order(mois, an)]
+conso_hebd2 <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "semaine_an"][order(semaine_an)]
+conso_hebd2 <- conso_hebd2[2:.N, ]
 conso_mens <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "mois_an"][order(mois_an)]
 conso_trim <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = c("trim", "an")][order(trim, an)]
 conso_trim <- conso_trim[2:.N,]
@@ -303,6 +313,7 @@ conso_an <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "an"][ord
 
 # Calcul d'une moyenne
 (mean_conso_hebd = mean(conso_hebd[, conso_kWh]))
+(mean_conso_hebd2 = mean(conso_hebd2[, conso_kWh]))
 (mean_conso_mens = mean(conso_mens[, conso_kWh]))
 
 
@@ -315,6 +326,13 @@ ggplot() +
        x = "Semaine",
        y = "Consommation (kWh)") +
   scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
+
+ggplot() +
+  geom_col(data = conso_hebd2, aes(x = semaine_an, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
+  geom_hline(yintercept = mean_conso_hebd2, linetype = "dashed", color = "violetred") +
+  labs(title = "Consommation hebdomadaire (en kWh)", x = "Semaine", y = "Consommation (kWh)") +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 
@@ -345,8 +363,8 @@ df_7jours <- df_prod_long[df_prod_long$date %in% (jour_barre - 1:7), ]
 ggplot() +
   geom_line(data = moy_heure, aes(x = Heure, y = moy_heure), color = "#ffd700", linetype = "solid", linewidth = 1) +
   geom_line(data = df_7jours, aes(x = Heure, y = Consommation, color = jour), linetype = "dashed", linewidth = 0.5) +
-  geom_line(data = moy_heure, aes(x = Heure, y = min_heure), color = "black", linetype = "solid", linewidth = 0.75) +
-  geom_line(data = moy_heure, aes(x = Heure, y = max_heure), color = "black", linetype = "solid", linewidth = 0.75) +
+  geom_line(data = moy_heure, aes(x = Heure, y = min_heure), color = "black", linetype = "solid", linewidth = 0.5) +
+  geom_line(data = moy_heure, aes(x = Heure, y = max_heure), color = "black", linetype = "solid", linewidth = 0.5) +
   scale_color_manual(
     name = "Jour",
     values = c(
