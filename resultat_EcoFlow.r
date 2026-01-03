@@ -330,7 +330,7 @@ ggplot() +
 
 
 ## Calcul d'une moyenne sur 7 jours
-moy_heure <- df_prod_long[date <= jour_barre & date > jour_barre - 7, .(moy_heure = mean(Consommation, na.rm = TRUE)), by="Heure"][order(Heure)]
+moy_heure <- df_prod_long[date <= jour_barre & date > jour_barre - 7, .(moy_heure = mean(Consommation, na.rm = TRUE), min_heure = min(Consommation, na.rm = TRUE), max_heure = max(Consommation, na.rm = TRUE)), by="Heure"][order(Heure)]
 
 # Ajouter une colonne "jour" dans df_long (à faire avant le ggplot)
 df_prod_long$jour <- factor(
@@ -345,6 +345,8 @@ df_7jours <- df_prod_long[df_prod_long$date %in% (jour_barre - 1:7), ]
 ggplot() +
   geom_line(data = moy_heure, aes(x = Heure, y = moy_heure), color = "#ffd700", linetype = "solid", linewidth = 1) +
   geom_line(data = df_7jours, aes(x = Heure, y = Consommation, color = jour), linetype = "dashed", linewidth = 0.5) +
+  geom_line(data = moy_heure, aes(x = Heure, y = min_heure), color = "black", linetype = "solid", linewidth = 0.75) +
+  geom_line(data = moy_heure, aes(x = Heure, y = max_heure), color = "black", linetype = "solid", linewidth = 0.75) +
   scale_color_manual(
     name = "Jour",
     values = c(
