@@ -28,8 +28,8 @@ library(lubridate)
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
 
-ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
-# ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+# ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
+ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 
 ## Lecture des données de base
@@ -253,6 +253,7 @@ setorder(tab_moins, production)
 | `r tab_moins[10, date]` | `r tab_moins[10, production]` |
 
 ### Résultats divers
+
 ```{r}
 #| label: tabl2
 #| echo: false
@@ -267,7 +268,6 @@ nb_jour_sup <- quot[production > 5000, .N]
 Nombre de jours avec production supérieure à 5 kWh: `r nb_jour_inf`
 
 Nombre de jours avec production inférieure à 1 kWh: `r nb_jour_sup`
-
 
 ## Consommation électrique
 
@@ -355,9 +355,7 @@ ggplot() +
 
 ```
 
-
 La consommation quotidienne moyenne est de `r round(mean_conso_kwh,3)` kWh.
-
 
 ### Consommation électrique hebdomadaire et mensuelle
 
@@ -418,7 +416,6 @@ ggplot() +
 
 Alors que la consommation mensuelle moyenne (sans le mois en cours) est de `r round(mean_conso_mens,3)` kWh.
 
-
 ## Production et consommation
 
 Graphique combiné production et consommation électrique du dernier jour complet.
@@ -447,9 +444,6 @@ ggplot() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), legend.position = "bottom")
 
 ```
-
-
-
 
 ## Autoconsommation
 
@@ -536,7 +530,6 @@ ggplot(data=dt_long, aes(x = date, y = taux, fill = type)) +
 
 ```
 
-
 ### Autoconsommation et taux de couverture mensuels
 
 ```{r}
@@ -585,6 +578,3 @@ ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
 
 
 ```
-
-
-
