@@ -52,7 +52,7 @@ prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Pr
 # Préparation des données #
 # ----------------------- #
 
-# Date aujourd'hui
+# Date aujourd'hui #
 auj <- Sys.Date()
 hier <- auj - 1
 j90 <- auj - 90
