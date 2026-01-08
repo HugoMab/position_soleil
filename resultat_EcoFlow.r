@@ -154,16 +154,6 @@ prod_an <- quot[, .(prod_kWh = (sum(production)/1000)), by = "an"][order(an)]
 ## Graphique
 # Hebdomadaire
 ggplot() +
-  geom_col(data = prod_hebd, aes(x = semaine, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
-  geom_hline(yintercept = mean_prod_hebd, linetype = "dashed", color = "khaki4") +
-  labs(title = "Production hebdomadaire (en kWh)",
-       x = "Semaine",
-       y = "Production (kWh)") +
-  scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
-  theme_gray() +
-  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
-
-ggplot() +
   geom_col(data = prod_hebd2, aes(x = semaine_an, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
   geom_hline(yintercept = mean_prod_hebd2, linetype = "dashed", color = "khaki4") +
   labs(title = "Production hebdomadaire (en kWh)", x = "Semaine", y = "Production (kWh)") +
@@ -320,16 +310,6 @@ conso_an <- conso_quot[, .(conso_kWh = (sum(consommation)/1000)), by = "an"][ord
 ## Graphique
 # Hebdomadaire
 ggplot() +
-  geom_col(data = conso_hebd, aes(x = semaine, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
-  geom_hline(yintercept = mean_conso_hebd, linetype = "dashed", color = "violetred") +
-  labs(title = "Consommation hebdomadaire (en kWh)",
-       x = "Semaine",
-       y = "Consommation (kWh)") +
-  scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
-  theme_gray() +
-  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
-
-ggplot() +
   geom_col(data = conso_hebd2, aes(x = semaine_an, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
   geom_hline(yintercept = mean_conso_hebd2, linetype = "dashed", color = "violetred") +
   labs(title = "Consommation hebdomadaire (en kWh)", x = "Semaine", y = "Consommation (kWh)") +
@@ -346,9 +326,11 @@ ggplot() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5))
 
 
-
 ## Calcul d'une moyenne sur 7 jours
 moy_heure <- df_prod_long[date <= jour_barre & date > jour_barre - 7, .(moy_heure = mean(Consommation, na.rm = TRUE), min_heure = min(Consommation, na.rm = TRUE), max_heure = max(Consommation, na.rm = TRUE)), by="Heure"][order(Heure)]
+sum(moy_heure[, moy_heure])
+sum(moy_heure[, min_heure])
+sum(moy_heure[, max_heure])
 
 # Ajouter une colonne "jour" dans df_long (à faire avant le ggplot)
 df_prod_long$jour <- factor(
