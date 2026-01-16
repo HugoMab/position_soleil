@@ -252,6 +252,45 @@ setorder(tab_moins, production)
 | `r tab_moins[9, date]`  | `r tab_moins[9, production]`  |
 | `r tab_moins[10, date]` | `r tab_moins[10, production]` |
 
+```{r}
+#| label: tabl3
+#| echo: false
+#| warning: false
+
+quot2[, an := year(date)]
+quot25 <- subset(quot2, an == 2025)
+quot26 <- subset(quot2, an == 2026)
+
+tab_plus25 <- quot25[1:5, ]
+tab_moins25 <- quot25[(.N - 4):.N, ]
+
+tab_plus26 <- quot26[1:5, ]
+tab_moins26 <- quot26[(.N - 4):.N, ]
+
+```
+
+**Les 5 meilleurs jours par année**
+
+| 2025 |   | 2026 |   |
+|--------------|-----------------------|--------------|-----------------------|
+| Date | Production (en Wh) | Date | Production (en Wh) |
+| `r tab_plus25[1, date]` | `r tab_plus25[1, production]` | `r tab_plus26[1, date]` | `r tab_plus26[1, production]` |
+| `r tab_plus25[2, date]` | `r tab_plus25[2, production]` | `r tab_plus26[2, date]` | `r tab_plus26[2, production]` |
+| `r tab_plus25[3, date]` | `r tab_plus25[3, production]` | `r tab_plus26[3, date]` | `r tab_plus26[3, production]` |
+| `r tab_plus25[4, date]` | `r tab_plus25[4, production]` | `r tab_plus26[4, date]` | `r tab_plus26[4, production]` |
+| `r tab_plus25[5, date]` | `r tab_plus25[5, production]` | `r tab_plus26[5, date]` | `r tab_plus26[5, production]` |
+
+**Les 5 moins bon jours par année**
+
+| 2025 |   | 2026 |   |
+|--------------|-----------------------|--------------|-----------------------|
+| Date | Production (en Wh) | Date | Production (en Wh) |
+| `r tab_moins25[1, date]` | `r tab_moins25[1, production]` | `r tab_moins26[1, date]` | `r tab_moins26[1, production]` |
+| `r tab_moins25[2, date]` | `r tab_moins25[2, production]` | `r tab_moins26[2, date]` | `r tab_moins26[2, production]` |
+| `r tab_moins25[3, date]` | `r tab_moins25[3, production]` | `r tab_moins26[3, date]` | `r tab_moins26[3, production]` |
+| `r tab_moins25[4, date]` | `r tab_moins25[4, production]` | `r tab_moins26[4, date]` | `r tab_moins26[4, production]` |
+| `r tab_moins25[5, date]` | `r tab_moins25[5, production]` | `r tab_moins26[5, date]` | `r tab_moins26[5, production]` |
+
 ### Résultats divers
 
 ```{r}
