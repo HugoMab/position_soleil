@@ -42,6 +42,9 @@ conso_quot <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), she
 # Consommation détaillée (horaires)
 conso_horaire <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Shelly_horaire", colNames = TRUE, detectDates = TRUE, startRow = 1))
 
+# Alimentation détaillée (horaires)
+maison_horaire <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="maison", colNames = TRUE, detectDates = TRUE, startRow = 1))
+
 
 # ----------------------- #
 # Préparation des données #
@@ -496,3 +499,135 @@ ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
   theme(legend.position = "bottom")
+
+
+## ------------------------------ ##
+## Autoconsommation avec batterie ##
+## ------------------------------ ##
+
+# Données Maison Horaire
+df_maison <- maison_horaire %>%
+  pivot_longer(
+    cols = -c(date), # Toutes les colonnes sauf dates
+    names_to = "Heure", # Nouvelle colonne pour les heures
+    values_to = "Production") %>%  # Valeurs de production horaire
+  mutate(
+    Heure = as.integer(Heure),
+    date = as.Date(date)
+  )
+
+df_maison <- as.data.table(df_maison)
+
+
+# Sélection des données
+# df_conso_aff <- subset(df_prod_long, date == jour_aff, select=c('date', 'Heure', 'Consommation'))
+df_maison_aff <- subset(df_maison, date == jour_aff, select=c('date', 'Heure', 'Production'))
+
+
+# Graphique
+ggplot() +
+  geom_area(data = df_conso_aff, aes(x = Heure, y = Consommation, fill = "Consommation"), alpha = 0.5) +
+  geom_area(data = df_maison_aff, aes(x = Heure, y = Production, fill = "Production"), alpha = 0.5) +
+  scale_fill_manual(name = "", values = c("Consommation" = "#ca8f9c", "Production" = "#65789b")) +
+  labs(title = paste0("Energie envoyée à la maison et consommation horaire du ", jour_aff), x = "Heure", y = "Wh") +
+  scale_x_continuous(breaks = seq(0, 23, 1)) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), legend.position = "bottom")
+
+
+## Calculs autoconsommation et taux de couverture
+
+setnames(maison_horaire, num_cols, paste0("prod_", num_cols))
+
+# # Conso horaire
+setnames(conso_horaire, num_cols, paste0("conso_", num_cols))
+
+conso_horaire[, an := NULL][, mois := NULL][, semaine := NULL][, trim := NULL][, jour := NULL]
+
+# Fusion
+dt_auto <- merge(maison_horaire, conso_horaire, by="date")
+
+# Calculs
+prod_cols  <- paste0("prod_", 0:23)
+conso_cols <- paste0("conso_", 0:23)
+
+prod_dt  <- dt_auto[, ..prod_cols]
+conso_dt <- dt_auto[, ..conso_cols]
+
+# Autoconsommation horaire
+AC_dt <- as.data.table(Map(pmin, prod_dt, conso_dt))
+
+setnames(AC_dt, paste0("AC_", 0:23))
+
+dt_auto <- cbind(dt_auto, AC_dt)
+
+# Autoconsommation totale
+dt_auto[, AC_total := rowSums(.SD), .SDcols = paste0("AC_", 0:23)]
+
+# Total production PV
+dt_auto[, P_pv_total := rowSums(.SD), .SDcols = paste0("prod_", 0:23)]
+
+# Total consommation
+dt_auto[, P_load_total := rowSums(.SD), .SDcols = paste0("conso_", 0:23)]
+
+# Taux d'autoconsommation
+dt_auto[, tx_auto := ifelse(P_pv_total == 0, 0, (AC_total/P_pv_total)*100)]
+
+# Taux de couverture
+dt_auto[, tx_couverture := (AC_total/P_load_total)*100]
+
+date_ref_max <- max(dt_auto[, date])
+date_ref_min = date_ref_max - 31 
+
+dt <- subset(dt_auto, date >= date_ref_min, select=c('date', 'tx_auto', 'tx_couverture'))
+
+dt_long <- melt(
+  dt,
+  id.vars = "date",
+  measure.vars = c("tx_auto", "tx_couverture"),
+  variable.name = "type",
+  value.name = "taux"
+)
+
+# Graphique taux d'autoconsommation et de couverture par jour
+ggplot(data=dt_long, aes(x = date, y = taux, fill = type)) +
+  geom_col(position = position_dodge()) +
+  labs(title = "Autoconsommation", x = "Date", y = "Taux (en %)") +
+  scale_fill_manual(name = "Taux",
+                    values = c("tx_auto" = "#1b9e77", "tx_couverture" = "#d95f02"),
+                    labels = c("tx_auto" = "Autoconsommation", "tx_couverture" = "Couverture")) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = "bottom")
+
+
+## Autoconsommation et couverture par jour
+# Préparation des données
+dt <- subset(dt_auto, select = c(date, AC_total, P_pv_total, P_load_total))
+dt[, mois := format(date, "%Y-%m")]
+
+dt_mois <- dt[, .(prod_kWh = sum(P_pv_total, na.rm = TRUE), conso_kWh = sum(P_load_total, na.rm = TRUE), auto_kWh = sum(AC_total, na.rm = TRUE)), by = mois]
+
+# Calcul des taux mensuels
+dt_mois[, ':=' (taux_autoconso_mens = (auto_kWh / prod_kWh) * 100, taux_couverture_mens = (auto_kWh / conso_kWh) * 100)]
+
+# Préparation du graphique
+dt_long <- melt(
+  dt_mois,
+  id.vars = "mois",
+  measure.vars = c("taux_autoconso_mens", "taux_couverture_mens"),
+  variable.name = "type",
+  value.name = "taux"
+)
+
+# Graphique taux d'autoconsommation et de couverture par jour
+ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
+  geom_col(position = position_dodge()) +
+  labs(title = "Autoconsommation", x = "Date", y = "Taux (en %)") +
+  scale_fill_manual(name = "Taux",
+                    values = c("taux_autoconso_mens" = "#1b9e77", "taux_couverture_mens" = "#d95f02"),
+                    labels = c("taux_autoconso_mens" = "Autoconsommation", "taux_couverture_mens" = "Couverture")) +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = "bottom")
+
