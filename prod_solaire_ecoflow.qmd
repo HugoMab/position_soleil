@@ -710,8 +710,8 @@ dt_long <- melt(
 
 # Graphique
 ggplot() +
-  geom_area(data = df_conso_aff, aes(x = Heure, y = Consommation, fill = "Consommation"), alpha = 0.5) +
-  geom_area(data = df_maison_aff, aes(x = Heure, y = Production, fill = "Production"), alpha = 0.5) +
+  geom_area(data = df_conso_aff, aes(x = Heure, y = Consommation, fill = "Consommation"), alpha = 0.6) +
+  geom_area(data = df_maison_aff, aes(x = Heure, y = Production, fill = "Production"), alpha = 0.45) +
   scale_fill_manual(name = "", values = c("Consommation" = "#ca8f9c", "Production" = "#65789b")) +
   labs(title = paste0("Energie envoyée à la maison et consommation horaire du ", jour_aff), x = "Heure", y = "Wh") +
   scale_x_continuous(breaks = seq(0, 23, 1)) +
