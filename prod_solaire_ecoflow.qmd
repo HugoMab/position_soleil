@@ -43,6 +43,8 @@ quot <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="qu
 prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Production", colNames = TRUE, detectDates = TRUE, startRow = 1))
 ```
 
+Avec texte test à supprimer!
+
 ```{r}
 #| label: Preparation
 #| echo: false
