@@ -539,86 +539,11 @@ dt_auto[, tx_couverture := (AC_total/P_load_total)*100]
 
 ```
 
-```{r}
-#| label: autoconso_graph1
-#| echo: false
-#| warning: false
 
-date_ref_max <- max(dt_auto[, date])
-date_ref_min = date_ref_max - 31 
-
-dt <- subset(dt_auto, date >= date_ref_min, select=c('date', 'tx_auto', 'tx_couverture'))
-
-dt_long <- melt(
-  dt,
-  id.vars = "date",
-  measure.vars = c("tx_auto", "tx_couverture"),
-  variable.name = "type",
-  value.name = "taux"
-)
-
-# Graphique taux d'autoconsommation et de couverture par jour
-ggplot(data=dt_long, aes(x = date, y = taux, fill = type)) +
-  geom_col(position = position_dodge()) +
-  labs(title = "Autoconsommation", x = "Date", y = "Taux (en %)") +
-  scale_fill_manual(name = "Taux",
-    values = c("tx_auto" = "#1b9e77", "tx_couverture" = "#d95f02"),
-    labels = c("tx_auto" = "Autoconsommation", "tx_couverture" = "Couverture")) +
-  theme_gray() +
-  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
-  theme(legend.position = "bottom")
-
-
-```
 
 ### Autoconsommation et taux de couverture mensuels
 
-```{r}
-#| label: autoconso2
-#| echo: false
-#| warning: false
 
-# Préparation des données
-dt <- subset(dt_auto, select = c(date, AC_total, P_pv_total, P_load_total))
-dt[, mois := format(date, "%Y-%m")]
-
-dt_mois <- dt[, .(prod_kWh = sum(P_pv_total, na.rm = TRUE), conso_kWh = sum(P_load_total, na.rm = TRUE), auto_kWh = sum(AC_total, na.rm = TRUE)), by = mois]
-
-# Calcul des taux mensuels
-dt_mois[, ':=' (taux_autoconso_mens = (auto_kWh / prod_kWh) * 100, taux_couverture_mens = (auto_kWh / conso_kWh) * 100)]
-
-# Préparation du graphique
-dt_long <- melt(
-  dt_mois,
-  id.vars = "mois",
-  measure.vars = c("taux_autoconso_mens", "taux_couverture_mens"),
-  variable.name = "type",
-  value.name = "taux"
-)
-
-
-# Graphique taux d'autoconsommation et de couverture par jour
-ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
-  geom_col(position = position_dodge(width = 0.9)) +
-  geom_text(
-    aes(label = paste0(round(taux, 1), " %")),
-    position = position_dodge(width = 0.9),
-    vjust = -0.3,
-    size = 3) +
-  scale_y_continuous(
-    labels = function(x) paste0(x, " %"),
-    expand = expansion(mult = c(0, 0.1))  # espace pour le texte
-    ) +
-  labs(title = "Autoconsommation", x = "Date", y = "Taux (en %)") +
-  scale_fill_manual(name = "Taux",
-                    values = c("taux_autoconso_mens" = "#1b9e77", "taux_couverture_mens" = "#d95f02"),
-                    labels = c("taux_autoconso_mens" = "Autoconsommation", "taux_couverture_mens" = "Couverture")) +
-  theme_gray() +
-  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
-  theme(legend.position = "bottom")
-
-
-```
 
 Prise en compte de la batterie: on s'intéresse au moment où l'energie est envoyée à la maison
 
