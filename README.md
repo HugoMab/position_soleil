@@ -8,6 +8,6 @@ Divers scripts pour
 **Développement à venir**:
 Graphique pour analyser ce qui entre et sort...
 
-Energie prise du réseau: Energie envoyée à la maison - Consommation = négatif **ou** Consommation > Energie envoyée à la maison
+Energie prise du réseau: Consommation - Energie envoyée à la maison = positif **ou** Consommation > Energie envoyée à la maison
 
-Energie envoyé sur le réseau : Energie envoyée à la maison - Consommation = positif **ou** Energie envoyée à la maison > Consommation
+Energie envoyé sur le réseau : Consommation - Energie envoyée à la maison = négatif **ou** Energie envoyée à la maison > Consommation
