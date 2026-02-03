@@ -655,16 +655,19 @@ df_reseau <- as.data.table(df_reseau)
 df_reseau[, type := ifelse(Quantite > 0, "alimentation", "injection")]
 
 df_reseau_quot <- df_reseau[, .(quant_quot = sum(Quantite)), by=c("date", "type")][order(date, type)]
+df_reseau_quot[, mois_an := format(date, "%Y-%m")]
+
+df_reseau_mens <- df_reseau_quot[, .(quant_quot2 = sum(quant_quot)), by=c("mois_an", "type")][order(mois_an, type)]
 
 # Graphique
 ggplot(df_reseau_quot, aes(x = date, y = quant_quot, fill = type)) +
   geom_col(width = 0.7) +
   geom_hline(yintercept = 0, color = "black") +
-  scale_fill_manual(values = c(alimentation = "#1b9e77", injection = "#d95f02"), labels = c(alimentation = "Alimentation", injection = "Injection")) +
-  labs(title ="Utilisation du réseau", x = "Date", y = "kWh", fill = "") +
+  scale_fill_manual(values = c(alimentation = "#cd4536", injection = "#579556"), labels = c(alimentation = "Alimentation", injection = "Injection")) +
+  labs(title ="Utilisation du réseau", x = "Date", y = "Wh", fill = "") +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
   theme(legend.position = "bottom")
 
 
-# Fusion des tables consommation, production et réseau afin de faire un tableau récapitulatif sur les 10 derniers jours
+
