@@ -43,8 +43,6 @@ quot <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="qu
 prod <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Production", colNames = TRUE, detectDates = TRUE, startRow = 1))
 ```
 
-Avec texte test à supprimer!
-
 ```{r}
 #| label: Preparation
 #| echo: false
@@ -274,7 +272,7 @@ tab_moins26 <- quot26[(.N - 4):.N, ]
 **Les 5 meilleurs jours par année**
 
 | 2025 |   | 2026 |   |
-|----|----|----|----|
+|------------------|------------------|------------------|------------------|
 | Date | Production (en Wh) | Date | Production (en Wh) |
 | `r tab_plus25[1, date]` | `r tab_plus25[1, production]` | `r tab_plus26[1, date]` | `r tab_plus26[1, production]` |
 | `r tab_plus25[2, date]` | `r tab_plus25[2, production]` | `r tab_plus26[2, date]` | `r tab_plus26[2, production]` |
@@ -285,7 +283,7 @@ tab_moins26 <- quot26[(.N - 4):.N, ]
 **Les 5 moins bon jours par année**
 
 | 2025 |   | 2026 |   |
-|----|----|----|----|
+|------------------|------------------|------------------|------------------|
 | Date | Production (en Wh) | Date | Production (en Wh) |
 | `r tab_moins25[1, date]` | `r tab_moins25[1, production]` | `r tab_moins26[1, date]` | `r tab_moins26[1, production]` |
 | `r tab_moins25[2, date]` | `r tab_moins25[2, production]` | `r tab_moins26[2, date]` | `r tab_moins26[2, production]` |
@@ -706,7 +704,7 @@ ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
 **Taux d'autoconsommation et de couverture des 10 derniers jours**
 
 | Date | Autoconsommation (en %) | Couverture (en %) |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | `r dt_auto[.N, date]` | `r dt_auto[.N, round(tx_auto, 1)]` | `r dt_auto[.N, round(tx_couverture, 1)]` |
 | `r dt_auto[.N-1, date]` | `r dt_auto[.N-1, round(tx_auto, 1)]` | `r dt_auto[.N-1, round(tx_couverture, 1)]` |
 | `r dt_auto[.N-2, date]` | `r dt_auto[.N-2, round(tx_auto, 1)]` | `r dt_auto[.N-2, round(tx_couverture, 1)]` |
