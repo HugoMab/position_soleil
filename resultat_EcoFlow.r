@@ -45,6 +45,8 @@ conso_horaire <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), 
 # Alimentation détaillée (horaires)
 maison_horaire <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="maison", colNames = TRUE, detectDates = TRUE, startRow = 1))
 
+# Alimentation depuis le réseau ou injection dans le réseau
+reseau <- as.data.table(read.xlsx(paste(ddpath, "ecoflow.xlsx", sep=""), sheet="Réseau", colNames = TRUE, detectDates = TRUE, startRow = 1))
 
 # ----------------------- #
 # Préparation des données #
@@ -631,3 +633,38 @@ ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
   theme(legend.position = "bottom")
 
+
+# ----------------------------------- #
+# Analyse de la provenance du courant #
+# ----------------------------------- #
+
+# Préparation des données
+df_reseau <- reseau %>%
+  pivot_longer(
+    cols = -c(date), # Toutes les colonnes sauf dates
+    names_to = "Heure", # Nouvelle colonne pour les heures
+    values_to = "Quantite") %>%  # Valeurs de production horaire
+  mutate(
+    Heure = as.integer(Heure),
+    date = as.Date(date)
+  )
+
+df_reseau <- as.data.table(df_reseau)
+
+# Calcul si alimentation ou injection
+df_reseau[, type := ifelse(Quantite > 0, "alimentation", "injection")]
+
+df_reseau_quot <- df_reseau[, .(quant_quot = sum(Quantite)), by=c("date", "type")][order(date, type)]
+
+# Graphique
+ggplot(df_reseau_quot, aes(x = date, y = quant_quot, fill = type)) +
+  geom_col(width = 0.7) +
+  geom_hline(yintercept = 0, color = "black") +
+  scale_fill_manual(values = c(alimentation = "#1b9e77", injection = "#d95f02"), labels = c(alimentation = "Alimentation", injection = "Injection")) +
+  labs(title ="Utilisation du réseau", x = "Date", y = "kWh", fill = "") +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
+  theme(legend.position = "bottom")
+
+
+# Fusion des tables consommation, production et réseau afin de faire un tableau récapitulatif sur les 10 derniers jours
