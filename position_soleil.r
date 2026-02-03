@@ -93,12 +93,12 @@ ggplot(sun_data, aes(x = time, y = elevation, color = as.factor(date))) +
 
 # Paramètres de base
 inclinaison_deg <- 30   # Inclinaison du panneau
-puissance_max <- 600    # Puissance crête du panneau (en W)
+puissance_max <- 800    # Puissance crête du panneau (en W)
 
 # 📅 Générer une séquence horaire pour un jour
 date_seq <- seq(
-  as.POSIXct("2025-06-03 00:00:00", tz = "Europe/Paris"),
-  as.POSIXct("2025-06-03 23:59:00", tz = "Europe/Paris"),
+  as.POSIXct("2025-02-04 00:00:00", tz = "Europe/Paris"),
+  as.POSIXct("2025-02-04 23:59:00", tz = "Europe/Paris"),
   by = "5 min"
 )
 
@@ -150,3 +150,4 @@ ggplot(sun, aes(x = time, y = power_W)) +
     y = "Puissance (W)"
   ) +
   theme_minimal()
+
