@@ -6,8 +6,5 @@ Divers scripts pour
 
 
 **Développement à venir**:
-Graphique pour analyser ce qui entre et sort...
 
-Energie prise du réseau: Consommation - Energie envoyée à la maison = positif **ou** Consommation > Energie envoyée à la maison
-
-Energie envoyé sur le réseau : Consommation - Energie envoyée à la maison = négatif **ou** Energie envoyée à la maison > Consommation
+Contrôler que dans le tableau de résumé par jour, les mêmes date sont prise en compte pour les 4 éléments. Idéalement, mettre en place un contrôle sur *Sys.Date()*
