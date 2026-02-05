@@ -718,7 +718,7 @@ ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
 
 ### Alimentation depuis ou injection vers le réseau
 
-L'injection d'énergie vers le réseau est calculée sur la base des résultats horaires (Consommation - Energie envoyée vers la maison) est diffère donc des relevés effectués par Oiken.
+L'injection d'énergie vers le réseau est calculée sur la base des résultats horaires (Consommation - Energie envoyée vers la maison) et diffère donc des relevés effectués par Oiken.
 
 ```{r}
 #| label: reseau
@@ -780,6 +780,3 @@ df_reseau_inj[, inj := -quant_quot][, quant_quot := NULL]
 | `r dt_auto[.N-7, date]` | `r conso_quot[.N-7, round(consommation,0)]` | `r quot[.N-8, production]` | `r df_reseau_alim[.N-7, round(alim,0)]` | `r df_reseau_inj[.N-7, round(inj,0)]` |
 | `r dt_auto[.N-8, date]` | `r conso_quot[.N-8, round(consommation,0)]` | `r quot[.N-9, production]` | `r df_reseau_alim[.N-8, round(alim,0)]` | `r df_reseau_inj[.N-8, round(inj,0)]` |
 | `r dt_auto[.N-9, date]` | `r conso_quot[.N-9, round(consommation,0)]` | `r quot[.N-10, production]` | `r df_reseau_alim[.N-9, round(alim,0)]` | `r df_reseau_inj[.N-9, round(inj,0)]` |
-
-
-
