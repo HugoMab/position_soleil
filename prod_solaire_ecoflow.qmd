@@ -772,7 +772,7 @@ min(c(dt_auto[.N, date], conso_quot[.N, date], quot[.N, date], df_reseau_alim[.N
 
 **Résumé des 10 derniers jours (en Wh)**
 
-| Date | Consommation | Production | Alimentation réseau | Injection réseau |
+| Date | Consommation | Production | Alimentation depuis le réseau | Injection vers le réseau |
 |---------------|---------------|---------------|---------------|---------------|
 | `r dt_auto[.N, date]` | `r conso_quot[.N, round(consommation,0)]` | `r quot[.N-1, production]` | `r df_reseau_alim[.N, round(alim,0)]` | `r df_reseau_inj[.N, round(inj,0)]` |
 | `r dt_auto[.N-1, date]` | `r conso_quot[.N-1, round(consommation,0)]` | `r quot[.N-2, production]` | `r df_reseau_alim[.N-1, round(alim,0)]` | `r df_reseau_inj[.N-1, round(inj,0)]` |
