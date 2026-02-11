@@ -28,8 +28,8 @@ library(lubridate)
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
 
-# ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
-ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
+# ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 
 ## Lecture des données de base
@@ -752,7 +752,7 @@ ggplot(df_reseau_quot, aes(x = date, y = quant_quot, fill = type)) +
   geom_col(width = 0.7) +
   geom_hline(yintercept = 0, color = "black") +
   scale_fill_manual(values = c(alimentation = "#cd4536", injection = "#579556"), labels = c(alimentation = "Alimentation", injection = "Injection")) +
-  labs(title ="Utilisation du réseau", x = "Date", y = "Wh", fill = "") +
+  labs(title ="Utilisation du réseau", x = "Date", y = "Wh", fill = "",subtitle = paste("30 derniers jours")) +
   theme_gray() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5)) +
   theme(legend.position = "bottom")
