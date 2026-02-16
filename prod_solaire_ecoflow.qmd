@@ -304,9 +304,9 @@ nb_jour_sup <- quot[production > 5000, .N]
 
 ```
 
-Nombre de jours avec production supérieure à 5 kWh: `r nb_jour_inf`
+Nombre de jours avec production supérieure à 5 kWh: `r nb_jour_sup`
 
-Nombre de jours avec production inférieure à 1 kWh: `r nb_jour_sup`
+Nombre de jours avec production inférieure à 1 kWh: `r nb_jour_inf`
 
 ## Consommation électrique
 
