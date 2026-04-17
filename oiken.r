@@ -37,7 +37,23 @@ data <- as.data.table(read.xlsx(paste(ddpath, "Rapport_Oiken_horaire.xlsx", sep=
 # ----------------------- #
 
 # Renommage des colonnes
+setnames(data, c("Consommation.[kWh]", "Réinjection.[kWh]", "Total.total.[kWh]", "Total.positive.[kWh]", "Total.negative.[kWh]", "Courbe.de.charge.nette.Consommation.[kWh]", "Courbe.de.charge.nette.de.l'alimentation.[kWh]", "Charge.nette.Total.[kWh]", "Puissance.moyennes.[kW]"), c("Consommation", "Réinjection", "Total", "Total_positif", "Total_negatif", "Courbe_charge_nette_Consommation", "Courbe_charge_nette_alimentation", "Charge_nette_Total", "Puissance_moyenne"))
+
+# Gestion des dates
+data[, date := as.Date(paste(substr(Temps, 7, 10), substr(Temps, 4, 5), substr(Temps, 1, 2), sep="-"))]
+data[, heure := factor(substr(Temps, 12, 13), levels = sprintf("%02d", 0:23))]
+
+# Flag pour savoir si la mesure est absente (1) ou présente (0)
+data[, flag_abs := ifelse(is.na(Consommation), 1, 0)]
+
+
+# -------------------- #
+# Création d'une table #
+# -------------------- #
+
+# Table quotidien
+quot <- data[, .(conso = sum(Consommation), reinjection = sum(Réinjection), total = sum(Total), total_pos = sum(Total_positif), total_neg = sum(Total_negatif), charge_nette_conso = sum(Courbe_charge_nette_Consommation), charge_nette_alim = sum(Courbe_charge_nette_alimentation), charge_nette_total = sum(Charge_nette_Total), abs = sum(flag_abs)), by="date"][order(date)]
 
 
 
-
+summary(data$flag_abs)
