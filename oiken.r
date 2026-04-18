@@ -48,12 +48,14 @@ data[, flag_abs := ifelse(is.na(Consommation), 1, 0)]
 
 
 # -------------------- #
-# Création d'une table #
+# Création des tables  #
 # -------------------- #
 
 # Table quotidien
 quot <- data[, .(conso = sum(Consommation), reinjection = sum(Réinjection), total = sum(Total), total_pos = sum(Total_positif), total_neg = sum(Total_negatif), charge_nette_conso = sum(Courbe_charge_nette_Consommation), charge_nette_alim = sum(Courbe_charge_nette_alimentation), charge_nette_total = sum(Charge_nette_Total), abs = sum(flag_abs)), by="date"][order(date)]
+quot[, mois_an := format(date, "%Y-%m")]
 
-
+# Table mensuelle
+mens <- quot[, .(conso = sum(conso), reinjection = sum(reinjection), total = sum(total), total_pos = sum(total_pos), total_neg = sum(total_neg), charge_nette_conso = sum(charge_nette_conso), charge_nette_alim = sum(charge_nette_alim), charge_nette_total = sum(charge_nette_total)), by="mois_an"][order(mois_an)]
 
 summary(data$flag_abs)
