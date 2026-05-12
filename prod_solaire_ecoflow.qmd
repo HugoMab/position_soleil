@@ -212,7 +212,7 @@ Alors que la production mensuelle moyenne (à partir de juin 2025; sans le mois 
 #| warning: false
 
 # Tableau des meilleurs et moins bons jours
-quot2 <- subset(quot, date > "2025-05-16" & production > 0, select=c("date", "production"))
+quot2 <- subset(quot, date > "2025-05-16" & production >= 0.001, select=c("date", "production"))
 setorder(quot2, -production)
 
 tab_plus <- quot2[1:10, ]
@@ -299,7 +299,7 @@ tab_moins26 <- quot26[(.N - 4):.N, ]
 #| warning: false
 
 # Nombre de jours inférieur ou supérieur à xx kWh / pour le futur pourra être transformé en tableau
-nb_jour_inf <- quot[production > 0.001 & production < 1000, .N]
+nb_jour_inf <- quot[production >= 0.001 & production < 1000, .N]
 nb_jour_sup <- quot[production > 5000, .N]
 
 ```
