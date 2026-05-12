@@ -28,8 +28,8 @@ library(lubridate)
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
 
-# ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
-ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
+# ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 
 ## Lecture des données de base
@@ -212,7 +212,7 @@ Alors que la production mensuelle moyenne (à partir de juin 2025; sans le mois 
 #| warning: false
 
 # Tableau des meilleurs et moins bons jours
-quot2 <- subset(quot, date > "2025-05-16", select=c("date", "production"))
+quot2 <- subset(quot, date > "2025-05-16" & production > 0, select=c("date", "production"))
 setorder(quot2, -production)
 
 tab_plus <- quot2[1:10, ]
@@ -299,7 +299,7 @@ tab_moins26 <- quot26[(.N - 4):.N, ]
 #| warning: false
 
 # Nombre de jours inférieur ou supérieur à xx kWh / pour le futur pourra être transformé en tableau
-nb_jour_inf <- quot[production < 1000, .N]
+nb_jour_inf <- quot[production > 0.001 & production < 1000, .N]
 nb_jour_sup <- quot[production > 5000, .N]
 
 ```
@@ -766,7 +766,7 @@ df_reseau_alim[, alim := quant_quot][, quant_quot := NULL]
 df_reseau_inj[, inj := -quant_quot][, quant_quot := NULL]
 
 # Date min
-min(c(dt_auto[.N, date], conso_quot[.N, date], quot[.N, date], df_reseau_alim[.N, date]))
+date_ref <- min(c(dt_auto[.N, date], conso_quot[.N, date], quot[.N, date], df_reseau_alim[.N, date]))
 quot[.N-1, date]
 
 
@@ -776,13 +776,13 @@ quot[.N-1, date]
 
 | Date | Consommation | Production | Alimentation depuis le réseau | Injection vers le réseau |
 |---------------|---------------|---------------|---------------|---------------|
-| `r dt_auto[.N, date]` | `r conso_quot[.N, round(consommation,0)]` | `r quot[.N-1, production]` | `r df_reseau_alim[.N, round(alim,0)]` | `r df_reseau_inj[.N, round(inj,0)]` |
-| `r dt_auto[.N-1, date]` | `r conso_quot[.N-1, round(consommation,0)]` | `r quot[.N-2, production]` | `r df_reseau_alim[.N-1, round(alim,0)]` | `r df_reseau_inj[.N-1, round(inj,0)]` |
-| `r dt_auto[.N-2, date]` | `r conso_quot[.N-2, round(consommation,0)]` | `r quot[.N-3, production]` | `r df_reseau_alim[.N-2, round(alim,0)]` | `r df_reseau_inj[.N-2, round(inj,0)]` |
-| `r dt_auto[.N-3, date]` | `r conso_quot[.N-3, round(consommation,0)]` | `r quot[.N-4, production]` | `r df_reseau_alim[.N-3, round(alim,0)]` | `r df_reseau_inj[.N-3, round(inj,0)]` |
-| `r dt_auto[.N-4, date]` | `r conso_quot[.N-4, round(consommation,0)]` | `r quot[.N-5, production]` | `r df_reseau_alim[.N-4, round(alim,0)]` | `r df_reseau_inj[.N-4, round(inj,0)]` |
-| `r dt_auto[.N-5, date]` | `r conso_quot[.N-5, round(consommation,0)]` | `r quot[.N-6, production]` | `r df_reseau_alim[.N-5, round(alim,0)]` | `r df_reseau_inj[.N-5, round(inj,0)]` |
-| `r dt_auto[.N-6, date]` | `r conso_quot[.N-6, round(consommation,0)]` | `r quot[.N-7, production]` | `r df_reseau_alim[.N-6, round(alim,0)]` | `r df_reseau_inj[.N-6, round(inj,0)]` |
-| `r dt_auto[.N-7, date]` | `r conso_quot[.N-7, round(consommation,0)]` | `r quot[.N-8, production]` | `r df_reseau_alim[.N-7, round(alim,0)]` | `r df_reseau_inj[.N-7, round(inj,0)]` |
-| `r dt_auto[.N-8, date]` | `r conso_quot[.N-8, round(consommation,0)]` | `r quot[.N-9, production]` | `r df_reseau_alim[.N-8, round(alim,0)]` | `r df_reseau_inj[.N-8, round(inj,0)]` |
-| `r dt_auto[.N-9, date]` | `r conso_quot[.N-9, round(consommation,0)]` | `r quot[.N-10, production]` | `r df_reseau_alim[.N-9, round(alim,0)]` | `r df_reseau_inj[.N-9, round(inj,0)]` |
+| `r dt_auto[date == date_ref, date]` | `r conso_quot[date == date_ref, round(consommation,0)]` | `r quot[date == date_ref, production]` | `r df_reseau_alim[date == date_ref, round(alim,0)]` | `r df_reseau_inj[date == date_ref, round(inj,0)]` |
+| `r dt_auto[date == date_ref-1, date]` | `r conso_quot[date == date_ref-1, round(consommation,0)]` | `r quot[date == date_ref-1, production]` | `r df_reseau_alim[date == date_ref-1, round(alim,0)]` | `r df_reseau_inj[date == date_ref-1, round(inj,0)]` |
+| `r dt_auto[date == date_ref-2, date]` | `r conso_quot[date == date_ref-2, round(consommation,0)]` | `r quot[date == date_ref-2, production]` | `r df_reseau_alim[date == date_ref-2, round(alim,0)]` | `r df_reseau_inj[date == date_ref-2, round(inj,0)]` |
+| `r dt_auto[date == date_ref-3, date]` | `r conso_quot[date == date_ref-3, round(consommation,0)]` | `r quot[date == date_ref-3, production]` | `r df_reseau_alim[date == date_ref-3, round(alim,0)]` | `r df_reseau_inj[date == date_ref-3, round(inj,0)]` |
+| `r dt_auto[date == date_ref-4, date]` | `r conso_quot[date == date_ref-4, round(consommation,0)]` | `r quot[date == date_ref-4, production]` | `r df_reseau_alim[date == date_ref-4, round(alim,0)]` | `r df_reseau_inj[date == date_ref-4, round(inj,0)]` |
+| `r dt_auto[date == date_ref-5, date]` | `r conso_quot[date == date_ref-5, round(consommation,0)]` | `r quot[date == date_ref-5, production]` | `r df_reseau_alim[date == date_ref-5, round(alim,0)]` | `r df_reseau_inj[date == date_ref-5, round(inj,0)]` |
+| `r dt_auto[date == date_ref-6, date]` | `r conso_quot[date == date_ref-6, round(consommation,0)]` | `r quot[date == date_ref-6, production]` | `r df_reseau_alim[date == date_ref-6, round(alim,0)]` | `r df_reseau_inj[date == date_ref-6, round(inj,0)]` |
+| `r dt_auto[date == date_ref-7, date]` | `r conso_quot[date == date_ref-7, round(consommation,0)]` | `r quot[date == date_ref-7, production]` | `r df_reseau_alim[date == date_ref-7, round(alim,0)]` | `r df_reseau_inj[date == date_ref-7, round(inj,0)]` |
+| `r dt_auto[date == date_ref-8, date]` | `r conso_quot[date == date_ref-8, round(consommation,0)]` | `r quot[date == date_ref-8, production]` | `r df_reseau_alim[date == date_ref-8, round(alim,0)]` | `r df_reseau_inj[date == date_ref-8, round(inj,0)]` |
+| `r dt_auto[date == date_ref-9, date]` | `r conso_quot[date == date_ref-9, round(consommation,0)]` | `r quot[date == date_ref-9, production]` | `r df_reseau_alim[date == date_ref-9, round(alim,0)]` | `r df_reseau_inj[date == date_ref-9, round(inj,0)]` |
