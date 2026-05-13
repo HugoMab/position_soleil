@@ -206,6 +206,8 @@ Alors que la production mensuelle moyenne (à partir de juin 2025; sans le mois 
 
 ### Classements des 10 jours les plus productifs et les moins productifs
 
+*Sans les jours à production nulle
+
 ```{r}
 #| label: tabl1
 #| echo: false
@@ -767,7 +769,6 @@ df_reseau_inj[, inj := -quant_quot][, quant_quot := NULL]
 
 # Date min
 date_ref <- min(c(dt_auto[.N, date], conso_quot[.N, date], quot[.N, date], df_reseau_alim[.N, date]))
-quot[.N-1, date]
 
 
 ```
