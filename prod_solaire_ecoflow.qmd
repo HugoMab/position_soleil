@@ -204,7 +204,7 @@ ggplot() +
 
 Alors que la production mensuelle moyenne (à partir de juin 2025; sans le mois en cours) est de `r round(mean_prod_mens,1)` kWh.
 
-### Classements des 10 jours les plus productifs et les moins productifs
+### Classements des 10 jours les plus productifs et les moins productifs*
 
 *Sans les jours à production nulle
 
@@ -303,12 +303,18 @@ tab_moins26 <- quot26[(.N - 4):.N, ]
 # Nombre de jours inférieur ou supérieur à xx kWh / pour le futur pourra être transformé en tableau
 nb_jour_inf <- quot[production >= 0.001 & production < 1000, .N]
 nb_jour_sup <- quot[production > 5000, .N]
+prod_an1 <- quot2[date >= "2025-05-15" & date <= "2026-05-14", .(prod = (sum(production)/1000))]
+prod_an2 <- quot2[date >= "2026-05-15", .(prod = (sum(production)/1000))]
 
 ```
 
 Nombre de jours avec production supérieure à 5 kWh: `r nb_jour_sup`
 
 Nombre de jours avec production inférieure à 1 kWh: `r nb_jour_inf`
+
+Production entre le 15 mai 2025 et le 14 mai 2026: `r prod_an1$prod` kWh.
+
+Production depuis le 15 mai 2026: `r prod_an2$prod` kWh.
 
 ## Consommation électrique
 
@@ -353,9 +359,6 @@ date_min <- conso_quot[which.min(conso_quot[, consommation]), date]
 
 
 ## Graphiques
-mean_conso_quot = mean(conso_quot[, consommation])
-mean_conso_kwh = mean_conso_quot/1000
-sd_conso_quot = sd(conso_quot[, consommation])
 
 jour_ligne <- date_max
 jour_barre <- conso_quot[.N, date]
@@ -373,10 +376,18 @@ df_barre <- subset(df_prod_long, date == jour_barre)
 #| warning: false
 
 # Quotidien
-ggplot(conso_quot, aes(x = date)) +
+conso_quot2 <- subset(conso_quot, date >= j90)
+
+mean_conso_quot = mean(conso_quot2[, consommation])
+mean_conso_kwh = mean_conso_quot/1000
+sd_conso_quot = sd(conso_quot2[, consommation])
+
+ggplot(conso_quot2, aes(x = date)) +
   geom_bar(aes(y = consommation), stat = "identity", fill = "#ca8f9c") + 
   geom_hline(yintercept = mean_conso_quot, linetype = "dotdash", color = "violetred") +
-  labs(x = "Date", y = "Consommation (en Wh)", title = "Consommation quotidienne")
+  labs(x = "Date", y = "Consommation (en Wh)", title = "Consommation quotidienne (90 derniers jours)")
+
+
 
 # Horaire
 
