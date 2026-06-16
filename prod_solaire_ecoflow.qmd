@@ -204,9 +204,9 @@ ggplot() +
 
 Alors que la production mensuelle moyenne (à partir de juin 2025; sans le mois en cours) est de `r round(mean_prod_mens,1)` kWh.
 
-### Classements des 10 jours les plus et les moins productifs*
+### Classements des 10 jours les plus et les moins productifs\*
 
-*Sans les jours à production nulle
+\*Sans les jours à production nulle
 
 ```{r}
 #| label: tabl1
