@@ -1,0 +1,148 @@
+---
+title: "Production solaire et consommation"
+author: "Hugo"
+format: html
+embed-resources: true
+editor: visual
+execute: 
+  echo: false
+  warning: false
+  message: false
+---
+
+## Production des panneaux solaires EcoFlow
+
+**Production des panneaux solaires depuis mai 2025.**
+
+```{r}
+#| label: initialisation 
+#| echo: false 
+#| warning: false 
+
+
+# Chargement des librairies 
+library(ggplot2) 
+library(tidyr) 
+library(dplyr) 
+library(lubridate)
+library(readxl)
+
+## Lecture des données
+# Chemins d'accès aux dossiers de données
+
+ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
+# ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+
+
+## Lecture des données de base
+
+# Résultats quotidien
+prod_quot <- read_xlsx(paste0(ddpath, "ecoflow.xlsx"), sheet="quotidien")
+
+# Résultats détaillés (horaires)
+prod_horaire <- read_xlsx(paste0(ddpath, "ecoflow.xlsx"), sheet="Production")
+
+# Dates importantes
+# Date aujourd'hui #
+auj <- Sys.Date()
+# hier <- auj - 1
+j90 <- auj - 90
+
+```
+
+You can add options to executable code like this
+
+```{r}
+#| label: preparation
+#| echo: false
+#| warning: false
+
+## Préparation des données
+
+# Données quotidiennes
+prod_quot <- prod_quot |> 
+  mutate(an = year(date), 
+         mois = month(date), 
+         semaine = isoweek(date), 
+         trim = factor(quarter(date)), 
+         jour = factor(lubridate::wday(date, week_start = 1)), 
+         mois_an = format(date, "%Y-%m"), 
+         semaine_an = date - (as.integer(strftime(date, "%u")) - 1), 
+         id_inverse = rev(row_number()))
+
+# Donnée horaires
+prod_horaire <- prod_horaire |> 
+  mutate(an = year(date), 
+         mois = month(date), 
+         semaine = isoweek(date), 
+         trim = factor(quarter(date)), 
+         jour = factor(lubridate::wday(date, week_start = 1)))
+
+##Format long
+df_long <- prod_horaire |> 
+  pivot_longer(
+    cols = -c(date, an, mois, semaine, trim, jour), # Toutes les colonnes sauf dates
+    names_to = "Heure", # Nouvelle colonne pour les heures
+    values_to = "Production") |>  # Valeurs de production horaire
+  mutate(
+    Heure = as.integer(Heure),
+    date = as.Date(date)
+  )
+
+## Journée production plus élevée
+res_min <- prod_quot |> 
+  filter(!is.na(production), 
+         production > 0)  |>  
+  slice_min(order_by = production, n = 1)|> 
+  select(date, production)
+
+res_max <- prod_quot  |>  
+  filter(!is.na(production))  |>  
+  slice_max(order_by = production, n = 1)  |>  
+  select(date, production)
+
+# Combiner les deux résultats
+date_max <- res_max$date
+date_min <- res_min$date[1]
+
+prod_max <- res_max$production
+prod_min <- res_min$production[1]
+
+prod_derniere <- prod_quot |> 
+  arrange(date) |> 
+  slice_tail(n = 1) |> 
+  select(date, production)
+
+date_derniere <- as.Date(prod_derniere$date)
+prod_derniere <- prod_derniere$production
+
+```
+
+Le jour où les panneaux ont produit le plus d'énergie fut le `r format(date_max, "%d %B %Y")` pour un total de `r prod_max` Wh.
+
+À l'inverse, le `r format(date_min, "%d %B %Y")`, les panneaux ont produit la plus faible quantité d'énergie (`r prod_min` Wh), hors jours à 0 Wh (par exemple jours de neige).
+
+```{r}
+#| label: graph_prod_quot
+#| echo: false
+#| warning: false
+
+# Quotidien
+df_90 <- prod_quot |> 
+  filter(id_inverse <= 90)
+
+mean_prod_quot <- round(mean(df_90$production, na.rm = TRUE), 0)
+
+ggplot(data = df_90, aes(x = date, y = production)) +
+  geom_col(fill = "#a7a824") + 
+  geom_hline(yintercept = mean_prod_quot, linetype = "dotdash", color = "khaki4") +
+  labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne", subtitle = "90 derniers jours") +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),     # Centre et met en gras le titre
+    plot.subtitle = element_text(hjust = 0.5)                   # Centre le sous-titre
+  )
+
+```
+En moyenne, sur les 90 derniers jours, la production quotidienne s'élève à `r round(mean_prod_quot)` Wh.
+
+Le graphique suivant compare la production entre le dernier jour (`r format(date_derniere, "%d %B %Y")`; `r prod_derniere` Wh) et le jour de production max. `r format(date_max, "%d %B %Y")`
