@@ -26,6 +26,7 @@ library(tidyr)
 library(dplyr) 
 library(lubridate)
 library(readxl)
+library(gt)
 
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
@@ -67,7 +68,7 @@ prod_quot <- prod_quot |>
          trim = factor(quarter(date)), 
          jour = factor(lubridate::wday(date, week_start = 1)), 
          mois_an = format(date, "%Y-%m"), 
-         semaine_an = date - (as.integer(strftime(date, "%u")) - 1), 
+         semaine_an = format(date, "%G-W%V"),
          id_inverse = rev(row_number()))
 
 # Donnée horaires
@@ -137,6 +138,7 @@ ggplot(data = df_90, aes(x = date, y = production)) +
   geom_col(fill = "#a7a824") + 
   geom_hline(yintercept = mean_prod_quot, linetype = "dotdash", color = "khaki4") +
   labs(x = "Date", y = "Production (en Wh)", title = "Production quotidienne", subtitle = "90 derniers jours") +
+    theme_minimal(base_size = 11) +
   theme(
     plot.title = element_text(hjust = 0.5, face = "bold"),     # Centre et met en gras le titre
     plot.subtitle = element_text(hjust = 0.5)                   # Centre le sous-titre
@@ -146,3 +148,246 @@ ggplot(data = df_90, aes(x = date, y = production)) +
 En moyenne, sur les 90 derniers jours, la production quotidienne s'élève à `r round(mean_prod_quot)` Wh.
 
 Le graphique suivant compare la production entre le dernier jour (`r format(date_derniere, "%d %B %Y")`; `r prod_derniere` Wh) et le jour de production max. `r format(date_max, "%d %B %Y")`
+
+```{r}
+#| label: graph_prod_quot_2
+#| echo: false
+#| warning: false
+
+jour_ligne <- date_max
+jour_barre <- date_derniere
+
+df_ligne <- subset(df_long, date == jour_ligne)
+df_barre <- subset(df_long, date == jour_barre)
+
+ggplot() +
+  # 1. Barres pour le jour de référence (avec transparence et couleur harmonisée)
+  geom_col(data = df_barre, aes(x = Heure, y = Production, fill = "Dernier jour"), alpha = 0.8, na.rm = TRUE) +
+  
+  # 2. Ligne et points pour le jour max (avec une couleur plus contrastée que le jaune pur sur fond blanc)
+  geom_line(data = df_ligne, aes(x = Heure, y = Production, color = "Jour record"), linewidth = 1, na.rm = TRUE) +
+  geom_point(data = df_ligne, aes(x = Heure, y = Production, color = "Jour record"), size = 2, na.rm = TRUE) +
+  
+  # 3. Gestion manuelle des couleurs pour créer une vraie légende claire
+  scale_fill_manual(name = "", values = c("Dernier jour" = "#a7a824")) +
+  # scale_scale_color_manual if needed, ou scale_color_manual :
+  scale_color_manual(name = "", values = c("Jour record" = "#ffd700")) + 
+  
+  # 4. Amélioration des axes et des libellés
+  labs(
+    title = "Production horaire des panneaux solaires",
+    subtitle = paste("Comparaison :", jour_barre, "vs", jour_ligne),
+    x = "Heure de la journée",
+    y = "Production (Wh)"
+  ) +
+  scale_x_continuous(breaks = seq(0, 23, 2)) + # Un tick toutes les 2h surcharge moins l'axe X
+  
+  # 5. Thème plus épuré (theme_minimal) et centrage des titres
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, color = "grey40"),
+    legend.position = "bottom",                  # Légende propre en bas
+    panel.grid.minor = element_blank(),           # Allège la grille
+    axis.text.x = element_text(angle = 0, hjust = 0.5) # Plus besoin de pivoter à 90° si on met un break toutes les 2h
+  )
+```
+### Graphiques pour la production hebdomadaire
+
+```{r}
+#| label: graph_prod_hebdo
+#| echo: false
+#| warning: false
+
+# Résumés des production hebdomadaires, mensuels, timestrielles, etc.
+prod_hebdo <- prod_quot |> 
+  group_by(semaine_an) |> 
+  summarise(prod_kWh = sum(production, na.rm = TRUE)/1000) |> 
+  mutate(id_inverse = rev(row_number()))
+
+prod_mens <- prod_quot |> 
+  group_by(mois_an) |> 
+  summarise(prod_kWh = sum(production, na.rm = TRUE)/1000) |> 
+  mutate(id_inverse = rev(row_number()))
+
+prod_trim <- prod_quot |> 
+  group_by(an, trim) |> 
+  summarise(prod_kWh = sum(production, na.rm = TRUE)/1000, .groups = "drop") |> 
+  arrange(an, trim) |> 
+  mutate(id_inverse = rev(row_number()))
+
+prod_an <- prod_quot |> 
+  group_by(an) |> 
+  summarise(prod_kWh = sum(production, na.rm = TRUE)/1000)
+
+
+# Calcul des moyennes
+mean_prod_hebdo <- prod_hebdo |> 
+  filter(id_inverse <= 52) |> 
+  # exclure la dernière ligne (équivalent de [2:(.N-1)])
+  slice(-n()) |> 
+  summarise(moyenne = mean(prod_kWh, na.rm = TRUE)) |> 
+  pull(moyenne)
+
+mean_prod_mens <- prod_mens |> 
+  filter(id_inverse <= 12) |> 
+  slice(-n()) |> 
+  summarise(moyenne = mean(prod_kWh, na.rm = TRUE)) |> 
+  pull(moyenne)
+
+
+## Graphique
+# Hebdomadaire
+prod_hebdo |> 
+  filter(id_inverse <= 52) |> 
+ggplot() +
+  geom_col(aes(x = semaine_an, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
+  geom_hline(yintercept = mean_prod_hebdo, linetype = "dashed", color = "khaki4") +
+  geom_text(aes(x = semaine_an, y = prod_kWh, label = round(prod_kWh)), vjust = -0.5, size = 4) + # place le texte au-dessus des barres
+  scale_x_discrete(breaks = function(x) x[seq(1, length(x), by = 2)]) +
+  labs(title = "Production hebdomadaire (en kWh)", subtitle = "52 dernières semaines", x = "Semaine", y = "Production (kWh)") +
+  theme_minimal(base_size = 11) +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5))
+
+```
+La production hebdomadaire moyenne (des 52 dernières semaines sans la semaine en cours) est de `r round(mean_prod_hebdo,3)` kWh.
+
+
+```{r}
+#| label: graph_prod_mens
+#| echo: false
+#| warning: false
+
+# Mensuel
+prod_mens |> 
+  filter(id_inverse <= 12) |> 
+ggplot() +
+  geom_col(aes(x = mois_an, y = prod_kWh), fill = "#ffd700", alpha = 0.85) +
+  geom_hline(yintercept = mean_prod_mens, linetype = "dashed", color = "khaki4") +
+  geom_text(aes(x = mois_an, y = prod_kWh, label = round(prod_kWh)),
+            vjust = -0.5,  # place le texte au-dessus des barres
+            size = 4) +
+  labs(title = "Production mensuelle (en kWh)", subtitle = "12 derniers mois",
+       x = "Mois",
+       y = "Production (kWh)") +
+  # scale_x_continuous(breaks = seq(5,12,1)) +
+  theme_minimal(base_size = 11) +
+  theme(axis.text.x = element_text(angle=0, vjust = 0.5, hjust = 0.5), plot.title = element_text(hjust=0.5))
+```
+Alors que la production mensuelle moyenne (à partir de juin 2025; sans le mois en cours) est de `r round(mean_prod_mens,1)` kWh.
+
+```{r}
+#| label: graph_prod_mens2
+#| echo: false
+#| warning: false
+
+# Assurez-vous que l'année est bien convertie en facteur ou en texte 
+# pour que ggplot comprenne qu'il doit regrouper les barres par catégorie
+prod_mens_comparaison <- prod_mens |> 
+  mutate(
+    an_f = as.factor(substr(mois_an, 1, 4)),
+    mois_f = substr(mois_an, 6, 7) # formate les mois sur 2 chiffres ("01", "02", etc. pour un tri parfait)
+  )
+
+prod_mens_comparaison |> 
+  ggplot(aes(x = mois_f, y = prod_kWh, fill = an_f)) +
+  
+  # position = "dodge" met les barres côte à côte au lieu de les empiler
+  geom_col(position = "dodge", alpha = 0.85) +
+  
+  # Ajout des étiquettes de valeurs au-dessus des barres (optionnel)
+  geom_text(aes(label = round(prod_kWh)), 
+            position = position_dodge(width = 0.9), 
+            vjust = -0.5, 
+            size = 3) +
+  
+  # Choix d'une jolie palette de couleurs pour les années
+  scale_fill_manual(name = "Année", values = c("2025" = "#d4a373", "2026" = "#ffd700")) +
+  
+  # Marge en haut pour laisser la place aux étiquettes
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.15))) +
+  
+  labs(
+    title = "Comparaison de la production mensuelle",
+    x = "Mois",
+    y = "Production (kWh)"
+  ) +
+  
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom",
+    panel.grid.minor = element_blank()
+  )
+```
+
+
+
+### Classements des 10 jours les plus et les moins productifs
+
+**Les 10 meilleurs jours**
+
+```{r}
+#| label: tbl_classement_plus
+#| echo: false
+#| warning: false
+
+# 1. Préparation des 10 meilleurs jours
+top_10_plus <- prod_quot |> 
+  filter(production >= 0.001, !is.na(production)) |> 
+  slice_max(order_by = production, n = 10) |> 
+  select(date, production) |> 
+  mutate(date = format(date, "%d.%m.%Y")) # Formatage propre de la date
+
+# 2. Préparation des 10 moins bons jours
+top_10_moins <- prod_quot |> 
+  filter(production >= 0.001, !is.na(production)) |> 
+  slice_min(order_by = production, n = 10) |> 
+  select(date, production) |> 
+  mutate(date = format(date, "%d.%m.%Y"))
+
+top_10_plus |> 
+  gt() |> 
+  cols_label(
+    date = "Date",
+    production = "Production (Wh)"
+  ) |> 
+  fmt_number(
+    columns = production,
+    decimals = 0,
+    use_seps = TRUE,
+    sep_mark = "\u202f"
+  ) |> 
+  tab_header(title = "Les 10 meilleurs jours") |> 
+  opt_table_lines()
+
+```
+
+
+**Les 10 moins bons jours**\*
+
+\*Sans les jours à production nulle
+
+```{r}
+#| label: tbl_classement_moins
+#| echo: false
+#| warning: false
+
+top_10_moins |> 
+  gt() |> 
+  cols_label(
+    date = "Date",
+    production = "Production (Wh)"
+  ) |> 
+  fmt_number(
+    columns = production,
+    decimals = 0,
+    use_seps = TRUE,
+    sep_mark = "\u202f"
+  ) |> 
+  tab_header(title = "Les 10 moins bons jours") |> 
+  opt_table_lines()
+
+```
+
+
