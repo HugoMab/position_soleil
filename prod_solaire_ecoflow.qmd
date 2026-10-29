@@ -58,10 +58,10 @@ hier <- auj - 1
 j90 <- auj - 90
 
 # Données quotidiennes
-quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))][, mois_an := format(date, "%Y-%m")][, semaine_an := date - (as.integer(strftime(date, "%u")) - 1)]
+quot[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(lubridate::wday(date, week_start = 1))][, mois_an := format(date, "%Y-%m")][, semaine_an := date - (as.integer(strftime(date, "%u")) - 1)]
 
 # Donnée horaires
-prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(wday(date, week_start = 1))]
+prod[, an := year(date)][, mois := month(date)][, semaine := isoweek(date)][, trim := as.factor(quarter(date))][, jour := as.factor(lubridate::wday(date, week_start = 1))]
 
 
 ## Format long
