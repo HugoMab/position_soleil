@@ -145,6 +145,7 @@ ggplot(data = df_90, aes(x = date, y = production)) +
   )
 
 ```
+
 En moyenne, sur les 90 derniers jours, la production quotidienne s'élève à `r round(mean_prod_quot)` Wh.
 
 Le graphique suivant compare la production entre le dernier jour (`r format(date_derniere, "%d %B %Y")`; `r prod_derniere` Wh) et le jour de production max. `r format(date_max, "%d %B %Y")`
@@ -192,6 +193,7 @@ ggplot() +
     axis.text.x = element_text(angle = 0, hjust = 0.5) # Plus besoin de pivoter à 90° si on met un break toutes les 2h
   )
 ```
+
 ### Graphiques pour la production hebdomadaire
 
 ```{r}
@@ -250,8 +252,8 @@ ggplot() +
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5))
 
 ```
-La production hebdomadaire moyenne (des 52 dernières semaines sans la semaine en cours) est de `r round(mean_prod_hebdo,3)` kWh.
 
+La production hebdomadaire moyenne (des 52 dernières semaines sans la semaine en cours) est de `r round(mean_prod_hebdo,3)` kWh.
 
 ```{r}
 #| label: graph_prod_mens
@@ -274,7 +276,8 @@ ggplot() +
   theme_minimal(base_size = 11) +
   theme(axis.text.x = element_text(angle=0, vjust = 0.5, hjust = 0.5), plot.title = element_text(hjust=0.5))
 ```
-Alors que la production mensuelle moyenne (à partir de juin 2025; sans le mois en cours) est de `r round(mean_prod_mens,1)` kWh.
+
+Alors que la production mensuelle moyenne (12 derniers mois; sans le mois en cours) est de `r round(mean_prod_mens,1)` kWh.
 
 ```{r}
 #| label: graph_prod_mens2
@@ -321,8 +324,6 @@ prod_mens_comparaison |>
   )
 ```
 
-
-
 ### Classements des 10 jours les plus et les moins productifs
 
 **Les 10 meilleurs jours**
@@ -363,7 +364,6 @@ top_10_plus |>
 
 ```
 
-
 **Les 10 moins bons jours**\*
 
 \*Sans les jours à production nulle
@@ -389,5 +389,3 @@ top_10_moins |>
   opt_table_lines()
 
 ```
-
-
