@@ -389,3 +389,120 @@ top_10_moins |>
   opt_table_lines()
 
 ```
+
+**Les 5 meilleurs jours par année**
+
+```{r}
+#| label: tbl_classement_top_annee
+#| echo: false
+#| warning: false
+
+# --- 1. LES 5 MEILLEURS JOURS ---
+top_5_plus_wide <- prod_quot |> 
+  filter(date > as.Date("2025-05-16"), production >= 0.001, !is.na(production)) |> 
+  mutate(an = as.character(year(date))) |> 
+  group_by(an) |> 
+  slice_max(order_by = production, n = 5) |> 
+  arrange(an, desc(production)) |> 
+  mutate(rang = row_number()) |> 
+  ungroup() |> 
+  select(rang, an, date, production) |> 
+  # Pivote pour mettre 2025 et 2026 en colonnes
+  pivot_wider(
+    names_from = an,
+    values_from = c(date, production),
+    names_sep = "_"
+  ) |> 
+  mutate(
+    date_2025 = format(date_2025, "%d.%m.%Y"),
+    date_2026 = format(date_2026, "%d.%m.%Y")
+  )
+
+top_5_plus_wide |> 
+  gt() |> 
+  cols_label(
+    rang = "Rang",
+    date_2025 = "Date",
+    production_2025 = "Prod. (Wh)",
+    date_2026 = "Date",
+    production_2026 = "Prod. (Wh)"
+  ) |> 
+  fmt_number(
+    columns = starts_with("production"),
+    decimals = 0,
+    sep_mark = " "
+  ) |> 
+  # Crée un en-tête commun au-dessus des colonnes de 2025
+  tab_spanner(
+    label = "2025",
+    columns = c(date_2025, production_2025)
+  ) |> 
+  # Crée un en-tête commun au-dessus des colonnes de 2026
+  tab_spanner(
+    label = "2026",
+    columns = c(date_2026, production_2026)
+  ) |> 
+  tab_header(title = "Les 5 meilleurs jours par année") |> 
+  opt_table_lines()
+
+```
+
+**Les 5 moins bon jours par année**
+
+```{r}
+#| label: tbl_classement_tail_annee
+#| echo: false
+#| warning: false
+
+top_5_moins_wide <- prod_quot |> 
+  filter(date > as.Date("2025-05-16"), production >= 0.001, !is.na(production)) |> 
+  mutate(an = as.character(year(date))) |> 
+  group_by(an) |> 
+  slice_min(order_by = production, n = 5) |> 
+  arrange(an, production) |> # Tri croissant pour les plus faibles
+  mutate(rang = row_number()) |> 
+  ungroup() |> 
+  select(rang, an, date, production) |> 
+  pivot_wider(
+    names_from = an,
+    values_from = c(date, production),
+    names_sep = "_"
+  ) |> 
+  mutate(
+    date_2025 = format(date_2025, "%d.%m.%Y"),
+    date_2026 = format(date_2026, "%d.%m.%Y")
+  )
+
+
+top_5_moins_wide |> 
+  gt() |> 
+  cols_label(
+    rang = "Rang",
+    date_2025 = "Date",
+    production_2025 = "Prod. (Wh)",
+    date_2026 = "Date",
+    production_2026 = "Prod. (Wh)"
+  ) |> 
+  fmt_number(
+    columns = starts_with("production"),
+    decimals = 0,
+    sep_mark = " "
+  ) |> 
+  # Crée un en-tête commun au-dessus des colonnes de 2025
+  tab_spanner(
+    label = "2025",
+    columns = c(date_2025, production_2025)
+  ) |> 
+  # Crée un en-tête commun au-dessus des colonnes de 2026
+  tab_spanner(
+    label = "2026",
+    columns = c(date_2026, production_2026)
+  ) |> 
+  tab_header(title = "Les 5 moins bons jours par année") |> 
+  opt_table_lines()
+
+```
+
+
+
+
