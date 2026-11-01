@@ -15,7 +15,7 @@ execute:
 **Production des panneaux solaires depuis mai 2025.**
 
 ```{r}
-#| label: initialisation 
+#| label: initialisation_prod
 #| echo: false 
 #| warning: false 
 
@@ -166,7 +166,7 @@ ggplot() +
   geom_col(data = df_barre, aes(x = Heure, y = Production, fill = "Dernier jour"), alpha = 0.8, na.rm = TRUE) +
   
   # 2. Ligne et points pour le jour max (avec une couleur plus contrastée que le jaune pur sur fond blanc)
-  geom_line(data = df_ligne, aes(x = Heure, y = Production, color = "Jour record"), linewidth = 1, na.rm = TRUE) +
+  geom_line(data = df_ligne, aes(x = Heure, y = Production, color = "Jour record"), linewidth = 0.8, na.rm = TRUE) +
   geom_point(data = df_ligne, aes(x = Heure, y = Production, color = "Jour record"), size = 2, na.rm = TRUE) +
   
   # 3. Gestion manuelle des couleurs pour créer une vraie légende claire
@@ -189,7 +189,7 @@ ggplot() +
     plot.title = element_text(hjust = 0.5, face = "bold"),
     plot.subtitle = element_text(hjust = 0.5, color = "grey40"),
     legend.position = "bottom",                  # Légende propre en bas
-    panel.grid.minor = element_blank(),           # Allège la grille
+    # panel.grid.minor = element_blank(),           # Allège la grille
     axis.text.x = element_text(angle = 0, hjust = 0.5) # Plus besoin de pivoter à 90° si on met un break toutes les 2h
   )
 ```
@@ -503,6 +503,228 @@ top_5_moins_wide |>
 
 ```
 
+```{r}
+#| label: tbl_divers
+#| echo: false
+#| warning: false
+
+# Nombre de jours inférieur ou supérieur à xx kWh / pour le futur pourra être transformé en tableau
+# 1. Nombre de jours avec une production entre 0.001 et 1000 Wh
+nb_jour_inf <- prod_quot |> 
+  filter(production >= 0.001 & production < 1000) |> 
+  nrow()
+
+# 2. Nombre de jours avec une production supérieure à 5000 Wh
+nb_jour_sup <- prod_quot |> 
+  filter(production > 5000) |> 
+  nrow()
+
+# 3. Production totale (en kWh) pour la 1re année (2025-05-15 au 2026-05-14)
+prod_an1 <- prod_quot |> 
+  filter(date >= as.Date("2025-05-15") & date <= as.Date("2026-05-14")) |> 
+  summarise(prod = sum(production, na.rm = TRUE) / 1000) |> 
+  pull(prod)
+
+# 4. Production totale (en kWh) à partir du 2026-05-15
+prod_an2 <- prod_quot |> 
+  filter(date >= as.Date("2026-05-15")) |> 
+  summarise(prod = sum(production, na.rm = TRUE) / 1000) |> 
+  pull(prod)
+  
+
+```
+Nombre de jours avec production supérieure à 5 kWh: `r nb_jour_sup`
+
+Nombre de jours avec production inférieure à 1 kWh: `r nb_jour_inf`
+
+Production entre le 15 mai 2025 et le 14 mai 2026: `r prod_an1` kWh.
+
+Production depuis le 15 mai 2026: `r prod_an2` kWh.
+
+## Consommation électrique
+
+La consommation est mesurée par le *smart meter* Shelly Pro 3 EM. Ce dispositif ne mesure que la consommation dans l'appartement. Sont donc exclus la consommation dans la cave/buanderie (lave-linge et sèche-linge) ainsi que le garage (borne de recharge).
+
+```{r}
+#| label: initialisation_conso
+#| echo: false
+#| warning: false
+
+## Chargement des données
+# Consommation quotidienne
+conso_quot <- read_xlsx(paste0(ddpath, "ecoflow.xlsx"), sheet="Shelly_quotidien")
+
+# Consommation détaillée (horaires)
+conso_horaire <- read_xlsx(paste0(ddpath, "ecoflow.xlsx"), sheet="Shelly_horaire")
 
 
+## Ajout des variables semaines, mois, trimestres, an
+# Données quotidiennes
+conso_quot <- conso_quot |> 
+  mutate(an = year(date), 
+         mois = month(date), 
+         semaine = isoweek(date), 
+         trim = factor(quarter(date)), 
+         jour = factor(lubridate::wday(date, week_start = 1)), 
+         mois_an = format(date, "%Y-%m"), 
+         semaine_an = format(date, "%G-W%V"),
+         id_inverse = rev(row_number()))
+
+# Donnée horaires
+conso_horaire <- conso_horaire |> 
+  mutate(an = year(date), 
+         mois = month(date), 
+         semaine = isoweek(date), 
+         trim = factor(quarter(date)), 
+         jour = factor(lubridate::wday(date, week_start = 1)))
+
+
+## Format long
+df_conso_long <- conso_horaire |> 
+  pivot_longer(
+    cols = -c(date, an, mois, semaine, trim, jour), # Toutes les colonnes sauf dates
+    names_to = "Heure", # Nouvelle colonne pour les heures
+    values_to = "Consommation") %>%  # Valeurs de production horaire
+  mutate(
+    Heure = as.integer(Heure),
+    date = as.Date(date)
+  )
+
+
+## Journée consommation  plus élevée / plus faible
+res_min_conso <- conso_quot |> 
+  slice_min(order_by = consommation , n = 1)|> 
+  select(date, consommation)
+
+res_max_conso <- conso_quot  |>  
+  slice_max(order_by = consommation, n = 1)  |>  
+  select(date, consommation)
+
+# Combiner les deux résultats
+date_conso_max <- res_max_conso$date
+date_conso_min <- res_min_conso$date
+
+conso_max <- res_max_conso$consommation
+conso_min <- res_min_conso$consommation
+
+## Graphiques
+jour_ligne <- as.Date(date_conso_max)
+jour_barre <- date_derniere
+
+
+df_ligne <- subset(df_conso_long, date == jour_ligne)
+df_barre <- subset(df_conso_long, date == jour_barre)
+
+```
+
+### Consommation électrique quotidienne et horaire
+
+```{r}
+#| label: graph_conso_quot
+#| echo: false
+#| warning: false
+
+
+# Graphique quotidien
+df_conso_90 <- conso_quot |> 
+  filter(id_inverse <= 90)
+
+mean_conso_quot <- round(mean(df_conso_90$consommation, na.rm = TRUE), 0)
+
+ggplot(df_conso_90, aes(x = date)) +
+  geom_bar(aes(y = consommation), stat = "identity", fill = "#ca8f9c") + 
+  geom_hline(yintercept = mean_conso_quot, linetype = "dotdash", color = "violetred") +
+  labs(x = "Date", y = "Consommation (en Wh)", title = "Consommation quotidienne", subtitle = "90 derniers jours") +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),     # Centre et met en gras le titre
+    plot.subtitle = element_text(hjust = 0.5)                   # Centre le sous-titre
+  )
+
+
+# Graphique horaire
+ggplot() +
+  geom_col(data = df_barre, aes(x = Heure, y = Consommation, fill = "Dernier jour"), alpha = 0.75) +
+  geom_line(data = df_ligne, aes(x = Heure, y = Consommation, color = "Jour record"), linewidth = .8) +
+  geom_point(data = df_ligne, aes(x = Heure, y = Consommation, color = "Jour record"), size = 2) +
+  labs(title = "Consommation électrique horaire",
+       x = "Heure",
+       y = "Consommation (Wh)", 
+       subtitle = paste("Comparaison :", jour_barre, "vs", jour_ligne)) +
+  scale_x_continuous(breaks = seq(0, 23, 1)) +
+  scale_fill_manual(name = "", values = c("Dernier jour" = "#ca8f9c")) +
+  scale_color_manual(name = "", values = c("Jour record" = "violetred")) + 
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position = "bottom",                  # Légende propre en bas
+    # panel.grid.minor = element_blank(),           # Allège la grille
+    plot.title = element_text(hjust = 0.5, face = "bold"),     # Centre et met en gras le titre
+    plot.subtitle = element_text(hjust = 0.5)                   # Centre le sous-titre
+  )
+
+```
+
+La consommation quotidienne moyenne est de `r round(mean_conso_quot,3)` Wh.
+
+### Consommation électrique hebdomadaire et mensuelle
+
+```{r}
+#| label: graph_conso_hebdo
+#| echo: false
+#| warning: false
+
+
+# Résumés des consommations hebdomadaires, mensuels, timestrielles, etc.
+conso_hebdo <- conso_quot |> 
+  group_by(semaine_an) |> 
+  summarise(conso_kWh = sum(consommation, na.rm = TRUE)/1000) |> 
+  mutate(id_inverse = rev(row_number()))
+
+conso_mens <- conso_quot |> 
+  group_by(mois_an) |> 
+  summarise(conso_kWh = sum(consommation, na.rm = TRUE)/1000) |> 
+  mutate(id_inverse = rev(row_number()))
+
+conso_trim <- conso_quot |> 
+  group_by(an, trim) |> 
+  summarise(conso_kWh = sum(consommation, na.rm = TRUE)/1000, .groups = "drop") |> 
+  arrange(an, trim) |> 
+  mutate(id_inverse = rev(row_number()))
+
+conso_an <- conso_quot |> 
+  group_by(an) |> 
+  summarise(conso_kWh = sum(consommation, na.rm = TRUE)/1000)
+
+
+# Calcul des moyennes
+mean_conso_hebdo <- conso_hebdo |> 
+  filter(id_inverse <= 52) |> 
+  # exclure la dernière ligne (équivalent de [2:(.N-1)])
+  slice(-n()) |> 
+  summarise(moyenne = mean(conso_kWh, na.rm = TRUE)) |> 
+  pull(moyenne)
+
+conso_prod_mens <- conso_mens |> 
+  filter(id_inverse <= 12) |> 
+  slice(-n()) |> 
+  summarise(moyenne = mean(conso_kWh, na.rm = TRUE)) |> 
+  pull(moyenne)
+
+
+## Graphique
+# Hebdomadaire
+conso_hebdo |> 
+  filter(id_inverse <= 52) |> 
+ggplot() +
+  geom_col(data = conso_hebdo, aes(x = semaine_an, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
+  geom_hline(yintercept = mean_conso_hebdo, linetype = "dashed", color = "violetred") +
+  geom_text(data = conso_hebdo, aes(x = semaine_an, y = conso_kWh, label = round(conso_kWh)), vjust = -0.5, size = 4) +
+    scale_x_discrete(breaks = function(x) x[seq(1, length(x), by = 2)]) +
+  labs(title = "Consommation hebdomadaire (en kWh)", subtitle = "52 dernières semaines", x = "Semaine", y = "Consommation (kWh)") +
+  theme_minimal(base_size = 11) +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5))
+
+
+```
+La consommation hebdomadaire moyenne (sans la semaine en cours) est de `r round(mean_conso_hebdo,3)` kWh.
 
