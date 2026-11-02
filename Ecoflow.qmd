@@ -43,6 +43,9 @@ prod_quot <- read_xlsx(paste0(ddpath, "ecoflow.xlsx"), sheet="quotidien")
 # Résultats détaillés (horaires)
 prod_horaire <- read_xlsx(paste0(ddpath, "ecoflow.xlsx"), sheet="Production")
 
+# Résultats maison
+maison_horaire <- read_xlsx(paste0(ddpath, "ecoflow.xlsx"), sheet="maison")
+
 # Dates importantes
 # Date aujourd'hui #
 auj <- Sys.Date()
@@ -704,7 +707,7 @@ mean_conso_hebdo <- conso_hebdo |>
   summarise(moyenne = mean(conso_kWh, na.rm = TRUE)) |> 
   pull(moyenne)
 
-conso_prod_mens <- conso_mens |> 
+mean_conso_mens <- conso_mens |> 
   filter(id_inverse <= 12) |> 
   slice(-n()) |> 
   summarise(moyenne = mean(conso_kWh, na.rm = TRUE)) |> 
@@ -727,4 +730,292 @@ ggplot() +
 
 ```
 La consommation hebdomadaire moyenne (sans la semaine en cours) est de `r round(mean_conso_hebdo,3)` kWh.
+
+```{r}
+#| label: graph_conso_mens
+#| echo: false
+#| warning: false
+
+# Mensuel
+conso_mens |> 
+  filter(id_inverse <= 12) |> 
+ggplot() +
+  geom_col(aes(x = mois_an, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
+  geom_hline(yintercept = mean_conso_mens, linetype = "dashed", color = "violetred") +
+  geom_text(aes(x = mois_an, y = conso_kWh, label = round(conso_kWh)),
+            vjust = -0.5,  # place le texte au-dessus des barres
+            size = 4) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.15))) +
+  labs(title = "Consommation mensuelle (en kWh)", subtitle = "12 derniers mois",
+       x = "Mois",
+       y = "Consommation (kWh)") +
+  theme_minimal(base_size = 11) +
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust = 1), plot.title = element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5))
+```
+
+Alors que la consommation mensuelle moyenne (sans le mois en cours) est de `r round(mean_conso_mens,3)` kWh.
+
+```{r}
+#| label: graph_conso_mens2
+#| echo: false
+#| warning: false
+
+# Assurez-vous que l'année est bien convertie en facteur ou en texte 
+# pour que ggplot comprenne qu'il doit regrouper les barres par catégorie
+conso_mens_comparaison <- conso_mens |> 
+  mutate(
+    an_f = as.factor(substr(mois_an, 1, 4)),
+    mois_f = substr(mois_an, 6, 7) # formate les mois sur 2 chiffres ("01", "02", etc. pour un tri parfait)
+  )
+
+conso_mens_comparaison |> 
+  ggplot(aes(x = mois_f, y = conso_kWh, fill = an_f)) +
+  geom_col(position = "dodge", alpha = 0.85) +   # position = "dodge" met les barres côte à côte au lieu de les empiler
+  # Ajout des étiquettes de valeurs au-dessus des barres (optionnel)
+  geom_text(aes(label = round(conso_kWh)), position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+  # Choix d'une jolie palette de couleurs pour les années
+  scale_fill_manual(name = "Année", values = c("2025" = "#bc6c25", "2026" = "#ffd166")) +
+  # Marge en haut pour laisser la place aux étiquettes
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.15))) +
+  labs(title = "Comparaison de la consommation mensuelle", x = "Mois", y = "Consommation (kWh)") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "bottom")
+```
+
+
+## Production et consommation
+
+Graphique combiné production et consommation électrique du dernier jour complet.
+
+```{r}
+#| label: graphique_conso_prod
+#| echo: false
+#| warning: false
+
+# Sélection des données
+df_conso_aff <- subset(df_conso_long, date == date_derniere, select=c('date', 'Heure', 'Consommation'))
+df_prod_aff <- subset(df_long, date == date_derniere, select=c('date', 'Heure', 'Production'))
+
+
+# Graphique
+ggplot() +
+  geom_area(data = df_conso_aff, aes(x = Heure, y = Consommation, fill = "Consommation"), alpha = 0.5) +
+  geom_area(data = df_prod_aff, aes(x = Heure, y = Production, fill = "Production"), alpha = 0.5) +
+  scale_fill_manual(name = "", values = c("Production" = "#a7a824", "Consommation" = "#ca8f9c")) +
+  labs(title = "Production et consommation horaire", subtitle=paste0("du ", date_derniere), x = "Heure", y = "Wh") +
+  scale_x_continuous(breaks = seq(0, 23, 1)) +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "bottom")
+
+```
+## Autoconsommation
+
+!! Vérifier si le chunk calcul_autoconso est vraiment utile !!
+
+```{r}
+#| label: calcul_autoconso
+#| echo: false
+#| warning: false
+
+# 1. Filtrage et renommage de la production horaire
+# prod_horaire <- prod_horaire |> 
+#   filter(date > as.Date("2025-10-31") & date < auj) |> 
+#   rename_with(~ paste0("prod_", .x), matches("^[0-9]+$"))
+# 
+# # 2. Nettoyage et renommage de la consommation horaire
+# conso_horaire_clean <- conso_horaire |> 
+#   select(-any_of(c("an", "mois", "semaine", "trim", "jour"))) |> 
+#   rename_with(~ paste0("conso_", .x), matches("^[0-9]+$"))
+# 
+# # 3. Fusion des deux tables par date
+# dt_auto <- inner_join(prod_horaire, conso_horaire_clean, by = "date")
+# 
+# # 4. Calcul de l'autoconsommation horaire (AC_0 à AC_23)
+# # Une petite boucle propre sur les 24 heures pour appliquer pmin() entre prod et conso
+# for (i in 0:23) {
+#   p_col  <- paste0("prod_", i)
+#   c_col  <- paste0("conso_", i)
+#   ac_col <- paste0("AC_", i)
+#   
+#   dt_auto[[ac_col]] <- pmin(dt_auto[[p_col]], dt_auto[[c_col]], na.rm = TRUE)
+# }
+# 
+# # 5. Calcul des totaux journaliers et des taux avec dplyr (via pick)
+# dt_auto <- dt_auto |> 
+#   mutate(
+#     # Sommes par ligne en sélectionnant les colonnes avec starts_with()
+#     AC_total     = rowSums(pick(starts_with("AC_")), na.rm = TRUE),
+#     P_pv_total   = rowSums(pick(starts_with("prod_")), na.rm = TRUE),
+#     P_load_total = rowSums(pick(starts_with("conso_")), na.rm = TRUE),
+#     
+#     # Taux d'autoconsommation (part de la production solaire consommée sur place)
+#     tx_auto      = if_else(P_pv_total == 0, 0, (AC_total / P_pv_total) * 100),
+#     
+#     # Taux de couverture / autoconsommation globale (part de la consommation couverte par le solaire)
+#     tx_couverture = if_else(P_load_total == 0, 0, (AC_total / P_load_total) * 100)
+#   )
+```
+
+### Autoconsommation et taux de couverture mensuels
+
+Prise en compte de la batterie: on s'intéresse au moment où l'energie est envoyée à la maison
+
+```{r}
+#| label: calcul_autoconso2
+#| echo: false
+#| warning: false
+
+# Données Maison Horaire
+df_maison <- maison_horaire |>
+  pivot_longer(
+    cols = -c(date), # Toutes les colonnes sauf dates
+    names_to = "Heure", # Nouvelle colonne pour les heures
+    values_to = "Production") |>  # Valeurs de production horaire
+  mutate(
+    Heure = as.integer(Heure),
+    date = as.Date(date))
+
+# Sélection des données
+df_maison_aff <- subset(df_maison, date == date_derniere, select=c('date', 'Heure', 'Production'))
+
+maison_horaire <- maison_horaire |>
+    rename_with(~ paste0("prod_", .x), matches("^[0-9]+$"))
+
+
+# 2. Nettoyage et renommage de la consommation horaire
+conso_horaire_clean <- conso_horaire |> 
+  select(-any_of(c("an", "mois", "semaine", "trim", "jour"))) |> 
+  rename_with(~ paste0("conso_", .x), matches("^[0-9]+$"))
+
+# 3. Fusion des deux tables par date
+dt_auto <- inner_join(maison_horaire, conso_horaire_clean, by = "date")
+
+# 4. Calcul de l'autoconsommation horaire (AC_0 à AC_23)
+# Une petite boucle propre sur les 24 heures pour appliquer pmin() entre prod et conso
+for (i in 0:23) {
+  p_col  <- paste0("prod_", i)
+  c_col  <- paste0("conso_", i)
+  ac_col <- paste0("AC_", i)
+  
+  dt_auto[[ac_col]] <- pmin(dt_auto[[p_col]], dt_auto[[c_col]], na.rm = TRUE)
+}
+
+# 5. Calcul des totaux journaliers et des taux avec dplyr (via pick)
+dt_auto <- dt_auto |> 
+  mutate(
+    # Sommes par ligne en sélectionnant les colonnes avec starts_with()
+    AC_total     = rowSums(pick(starts_with("AC_")), na.rm = TRUE),
+    P_pv_total   = rowSums(pick(starts_with("prod_")), na.rm = TRUE),
+    P_load_total = rowSums(pick(starts_with("conso_")), na.rm = TRUE),
+    
+    # Taux d'autoconsommation (part de la production solaire consommée sur place)
+    tx_auto      = if_else(P_pv_total == 0, 0, (AC_total / P_pv_total) * 100),
+    
+    # Taux de couverture / autoconsommation globale (part de la consommation couverte par le solaire)
+    tx_couverture = if_else(P_load_total == 0, 0, (AC_total / P_load_total) * 100)
+  )
+
+
+dt_auto <- dt_auto |> 
+  mutate(id_inverse = rev(row_number()))
+  
+dt <- subset(dt_auto, id_inverse <= 30, select=c('date', 'tx_auto', 'tx_couverture'))
+
+dt_long <- dt |> 
+  pivot_longer(
+    cols = c(tx_auto, tx_couverture),
+    names_to = "type",
+    values_to = "taux"
+  )
+
+
+```
+
+```{r}
+#| label: graph_autoconso
+#| echo: false
+#| warning: false
+
+# Graphique
+ggplot() +
+  geom_area(data = df_conso_aff, aes(x = Heure, y = Consommation, fill = "Consommation"), alpha = 0.6) +
+  geom_area(data = df_maison_aff, aes(x = Heure, y = Production, fill = "Production"), alpha = 0.45) +
+  scale_fill_manual(name = "", values = c("Consommation" = "#ca8f9c", "Production" = "#65789b")) +
+  labs(title = "Energie envoyée à la maison et consommation horaire", subtitle = paste0("du ", date_derniere), x = "Heure", y = "Wh") +
+  scale_x_continuous(breaks = seq(0, 23, 1)) +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "bottom")
+
+
+```
+```{r}
+#| label: graph_autoconso2
+#| echo: false
+#| warning: false
+
+# Graphique taux d'autoconsommation et de couverture par jour
+ggplot(data=dt_long, aes(x = date, y = taux, fill = type)) +
+  geom_col(position = position_dodge()) +
+  labs(title = "Autoconsommation", subtitle = "30 derniers jours", x = "Date", y = "Taux") +
+  scale_fill_manual(name = "Taux",
+                    values = c("tx_auto" = "#1b9e77", "tx_couverture" = "#d95f02"),
+                    labels = c("tx_auto" = "Autoconsommation", "tx_couverture" = "Couverture")) +
+    scale_y_continuous(
+    labels = function(x) paste0(x, " %"),
+    expand = expansion(mult = c(0, 0.1)),   # espace pour le texte
+    breaks = seq(0,100, 20)) +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "bottom")
+
+
+```
+```{r}
+#| label: calcul_autoconso3
+#| echo: false
+#| warning: false
+
+## Autoconsommation et couverture par mois
+# Préparation des données
+dt <- dt_auto |> 
+  select(date, AC_total, P_pv_total, P_load_total) |> 
+  mutate(mois = format(date, "%Y-%m"))
+
+dt_mois <- dt |> 
+  group_by(mois) |> 
+  summarise(prod_kWh = sum(P_pv_total, na.rm = TRUE), 
+            conso_kWh = sum(P_load_total, na.rm = TRUE), 
+            auto_kWh = sum(AC_total, na.rm = TRUE), 
+            taux_autoconso_mens = (auto_kWh / prod_kWh) * 100, 
+            taux_couverture_mens = (auto_kWh / conso_kWh) * 100, .groups="drop_last")
+
+
+dt_long <- dt_mois |> 
+  pivot_longer(
+    cols = c(taux_autoconso_mens, taux_couverture_mens),
+    names_to = "type",
+    values_to = "taux"
+  )
+
+```
+```{r}
+#| label: graph_autoconso3
+#| echo: false
+#| warning: false
+
+# Graphique taux d'autoconsommation et de couverture par jour
+ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
+  geom_col(position = position_dodge(width = 0.9)) +
+  geom_text(aes(label = paste0(round(taux, 1), " %")), position = position_dodge(width = 0.9), vjust = -0.3, size = 3) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, " %"),
+    expand = expansion(mult = c(0, 0.1)),   # espace pour le texte
+    breaks = seq(0,100, 20)) +
+  labs(title = "Autoconsommation", subtitle = "par mois", x = "Date", y = "Taux (en %)") +
+  scale_fill_manual(name = "Taux",
+                    values = c("taux_autoconso_mens" = "#1b9e77", "taux_couverture_mens" = "#d95f02"),
+                    labels = c("taux_autoconso_mens" = "Autoconsommation", "taux_couverture_mens" = "Couverture")) +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "bottom")
+
+```
 
