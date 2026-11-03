@@ -46,10 +46,13 @@ prod_horaire <- read_xlsx(paste0(ddpath, "ecoflow.xlsx"), sheet="Production")
 # Résultats maison
 maison_horaire <- read_xlsx(paste0(ddpath, "ecoflow.xlsx"), sheet="maison")
 
+# Alimentation depuis le réseau ou injection dans le réseau
+reseau <- read_xlsx(paste0(ddpath, "ecoflow.xlsx"), sheet="Réseau")
+
+
 # Dates importantes
 # Date aujourd'hui #
 auj <- Sys.Date()
-# hier <- auj - 1
 j90 <- auj - 90
 
 ```
@@ -536,6 +539,7 @@ prod_an2 <- prod_quot |>
   
 
 ```
+
 Nombre de jours avec production supérieure à 5 kWh: `r nb_jour_sup`
 
 Nombre de jours avec production inférieure à 1 kWh: `r nb_jour_inf`
@@ -729,6 +733,7 @@ ggplot() +
 
 
 ```
+
 La consommation hebdomadaire moyenne (sans la semaine en cours) est de `r round(mean_conso_hebdo,3)` kWh.
 
 ```{r}
@@ -782,7 +787,6 @@ conso_mens_comparaison |>
   theme(plot.title = element_text(hjust = 0.5), legend.position = "bottom")
 ```
 
-
 ## Production et consommation
 
 Graphique combiné production et consommation électrique du dernier jour complet.
@@ -808,6 +812,7 @@ ggplot() +
   theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "bottom")
 
 ```
+
 ## Autoconsommation
 
 !! Vérifier si le chunk calcul_autoconso est vraiment utile !!
@@ -948,6 +953,7 @@ ggplot() +
 
 
 ```
+
 ```{r}
 #| label: graph_autoconso2
 #| echo: false
@@ -969,6 +975,7 @@ ggplot(data=dt_long, aes(x = date, y = taux, fill = type)) +
 
 
 ```
+
 ```{r}
 #| label: calcul_autoconso3
 #| echo: false
@@ -997,6 +1004,7 @@ dt_long <- dt_mois |>
   )
 
 ```
+
 ```{r}
 #| label: graph_autoconso3
 #| echo: false
@@ -1017,5 +1025,142 @@ ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
   theme_minimal(base_size = 11) +
   theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "bottom")
 
+```
+
+**Taux d'autoconsommation et de couverture des 10 derniers jours**
+```{r}
+#| label: tbl_autoconso
+#| echo: false
+#| warning: false
+
+dernier_10_jours <- dt_auto |> 
+  slice_tail(n = 10) |> 
+  arrange(desc(date)) |> 
+  select(date, tx_auto, tx_couverture) |> 
+  mutate(date = format(date, "%d.%m.%Y")) 
+
+dernier_10_jours |> 
+  gt() |> 
+  cols_label(
+    date = "Date",
+    tx_auto = "Autoconsommation",
+    tx_couverture = "Taux de couverture"
+  ) |> 
+  # Formate les nombres avec 1 décimale et ajoute le signe %
+  fmt_number(
+    columns = c(tx_auto, tx_couverture),
+    decimals = 1,
+    use_seps = TRUE,
+    sep_mark = " ",
+    pattern = "{x} %"  # C'est ici qu'on ajoute proprement le signe % sans multiplicateur
+  ) |>
+  # fmt_percent(
+  #   columns = c(tx_auto, tx_couverture),
+  #   scale_values = FALSE, # Conserve la valeur (ex: 45.2 reste 45.2%)
+  #   decimals = 1,
+  #   pattern = "{x} %"
+  # ) |>
+  tab_header(
+    title = "Taux d'autoconsommation et de couverture",
+    subtitle = "10 derniers jours"
+  ) |> 
+  opt_table_lines()
+```
+
+```{r}
+#| label: reseau
+#| echo: false
+#| warning: false
+
+
+# Préparation des données
+df_reseau <- reseau |> 
+  pivot_longer(
+    cols = -c(date), # Toutes les colonnes sauf dates
+    names_to = "Heure", # Nouvelle colonne pour les heures
+    values_to = "Quantite") |>   # Valeurs de production horaire
+  mutate(
+    Heure = as.integer(Heure),
+    date = as.Date(date)
+  )
+
+
+# Calcul si alimentation ou injection
+df_reseau <- df_reseau |> 
+  mutate(type = if_else(Quantite > 0, "alimentation", "injection"))
+
+df_reseau_quot <- df_reseau |> 
+  summarise(quant_quot = sum(Quantite), .by = c(date, type)) |> 
+ arrange(type, desc(date)) |> 
+  mutate(id_inverse = row_number(), .by = type)
+
+df_reseau_quot <- subset(df_reseau_quot, id_inverse <= 30)
+
+# Graphique
+ggplot(df_reseau_quot, aes(x = date, y = quant_quot, fill = type)) +
+  geom_col(width = 0.7) +
+  geom_hline(yintercept = 0, color = "black") +
+  scale_fill_manual(values = c(alimentation = "#cd4536", injection = "#579556"), labels = c(alimentation = "Alimentation", injection = "Injection")) +
+  labs(title ="Utilisation du réseau", x = "Date", y = "Wh", fill = "",subtitle = paste("30 derniers jours")) +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5), legend.position = "bottom")
+
+
+
+```
+
+**Résumé des 10 derniers jours (en Wh)**
+
+```{r}
+#| label: tbl_reseau
+#| echo: false
+#| warning: false
+
+# Préparation pour le tableau final
+# Supposons que df_reseau contienne vos flux "alimentation" et "injection" 
+# qu'on repivoté proprement en colonnes :
+df_reseau_wide <- df_reseau |> 
+  summarise(quant_quot = sum(Quantite), .by = c(date, type)) |> 
+  pivot_wider(
+    names_from = type, 
+    values_from = quant_quot,
+    values_fill = 0
+  ) 
+
+# Assemblage de toutes les tables par date
+synthese_10_jours <- conso_quot |> 
+  select(date, consommation) |> 
+  inner_join(prod_quot |> select(date, production), by = "date") |> # si besoin
+  # inner_join(quot |> select(date, production_pv = production), by = "date") |> # si séparé
+  # Ou plus simplement si dt_auto contient déjà production et consommation :
+  left_join(df_reseau_wide, by = "date") |> 
+  arrange(desc(date)) |> 
+  slice_head(n = 10) |> 
+  mutate(date = format(date, "%d.%m.%Y"))
+
+# Tableau gt
+synthese_10_jours |> 
+  gt() |> 
+  cols_label(
+    date = "Date",
+    consommation = "Consommation",
+    production = "Production",
+    alimentation = "Alimentation réseau",
+    injection = "Injection réseau"
+  ) |> 
+  fmt_number(
+    columns = c(consommation, production, alimentation, injection),
+    decimals = 0,
+    sep_mark = " "
+  ) |> 
+  fmt_missing(
+    columns = everything(),
+    missing_text = "0"
+  ) |> 
+  tab_header(
+    title = "Résumé des 10 derniers jours",
+    subtitle = "en Wh"
+  ) |> 
+  opt_table_lines()
 ```
 
