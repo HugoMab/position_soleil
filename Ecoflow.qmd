@@ -815,52 +815,6 @@ ggplot() +
 
 ## Autoconsommation
 
-!! Vérifier si le chunk calcul_autoconso est vraiment utile !!
-
-```{r}
-#| label: calcul_autoconso
-#| echo: false
-#| warning: false
-
-# 1. Filtrage et renommage de la production horaire
-# prod_horaire <- prod_horaire |> 
-#   filter(date > as.Date("2025-10-31") & date < auj) |> 
-#   rename_with(~ paste0("prod_", .x), matches("^[0-9]+$"))
-# 
-# # 2. Nettoyage et renommage de la consommation horaire
-# conso_horaire_clean <- conso_horaire |> 
-#   select(-any_of(c("an", "mois", "semaine", "trim", "jour"))) |> 
-#   rename_with(~ paste0("conso_", .x), matches("^[0-9]+$"))
-# 
-# # 3. Fusion des deux tables par date
-# dt_auto <- inner_join(prod_horaire, conso_horaire_clean, by = "date")
-# 
-# # 4. Calcul de l'autoconsommation horaire (AC_0 à AC_23)
-# # Une petite boucle propre sur les 24 heures pour appliquer pmin() entre prod et conso
-# for (i in 0:23) {
-#   p_col  <- paste0("prod_", i)
-#   c_col  <- paste0("conso_", i)
-#   ac_col <- paste0("AC_", i)
-#   
-#   dt_auto[[ac_col]] <- pmin(dt_auto[[p_col]], dt_auto[[c_col]], na.rm = TRUE)
-# }
-# 
-# # 5. Calcul des totaux journaliers et des taux avec dplyr (via pick)
-# dt_auto <- dt_auto |> 
-#   mutate(
-#     # Sommes par ligne en sélectionnant les colonnes avec starts_with()
-#     AC_total     = rowSums(pick(starts_with("AC_")), na.rm = TRUE),
-#     P_pv_total   = rowSums(pick(starts_with("prod_")), na.rm = TRUE),
-#     P_load_total = rowSums(pick(starts_with("conso_")), na.rm = TRUE),
-#     
-#     # Taux d'autoconsommation (part de la production solaire consommée sur place)
-#     tx_auto      = if_else(P_pv_total == 0, 0, (AC_total / P_pv_total) * 100),
-#     
-#     # Taux de couverture / autoconsommation globale (part de la consommation couverte par le solaire)
-#     tx_couverture = if_else(P_load_total == 0, 0, (AC_total / P_load_total) * 100)
-#   )
-```
-
 ### Autoconsommation et taux de couverture mensuels
 
 Prise en compte de la batterie: on s'intéresse au moment où l'energie est envoyée à la maison
