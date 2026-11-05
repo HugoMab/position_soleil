@@ -57,7 +57,6 @@ j90 <- auj - 90
 
 ```
 
-You can add options to executable code like this
 
 ```{r}
 #| label: preparation
