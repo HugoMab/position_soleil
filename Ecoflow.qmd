@@ -31,8 +31,8 @@ library(gt)
 ## Lecture des données
 # Chemins d'accès aux dossiers de données
 
-ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
-# ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
+# ddpath <- "C:/Users/doglo/OneDrive/Stat_R/Data/" # Laptop
+ddpath <- "C:/Users/Hugo/OneDrive/Stat_R/Data/" # Desktop
 
 
 ## Lecture des données de base
@@ -56,7 +56,6 @@ auj <- Sys.Date()
 j90 <- auj - 90
 
 ```
-
 
 ```{r}
 #| label: preparation
@@ -722,9 +721,9 @@ mean_conso_mens <- conso_mens |>
 conso_hebdo |> 
   filter(id_inverse <= 52) |> 
 ggplot() +
-  geom_col(data = conso_hebdo, aes(x = semaine_an, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
+  geom_col(aes(x = semaine_an, y = conso_kWh), fill = "#ca8f9c", alpha = 0.85) +
   geom_hline(yintercept = mean_conso_hebdo, linetype = "dashed", color = "violetred") +
-  geom_text(data = conso_hebdo, aes(x = semaine_an, y = conso_kWh, label = round(conso_kWh)), vjust = -0.5, size = 4) +
+  geom_text(aes(x = semaine_an, y = conso_kWh, label = round(conso_kWh)), vjust = -0.5, size = 4) +
     scale_x_discrete(breaks = function(x) x[seq(1, length(x), by = 2)]) +
   labs(title = "Consommation hebdomadaire (en kWh)", subtitle = "52 dernières semaines", x = "Semaine", y = "Consommation (kWh)") +
   theme_minimal(base_size = 11) +
@@ -981,6 +980,7 @@ ggplot(data=dt_long, aes(x = mois, y = taux, fill = type)) +
 ```
 
 **Taux d'autoconsommation et de couverture des 10 derniers jours**
+
 ```{r}
 #| label: tbl_autoconso
 #| echo: false
@@ -1116,4 +1116,3 @@ synthese_10_jours |>
   ) |> 
   opt_table_lines()
 ```
-
