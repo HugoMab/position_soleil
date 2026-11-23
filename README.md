@@ -7,4 +7,5 @@ Divers scripts pour
 
 **Développement à venir**:
 
-Contrôler que dans le tableau de résumé par jour, les mêmes date sont prise en compte pour les 4 éléments. Idéalement, mettre en place un contrôle sur *Sys.Date()*
+Tableau de production par mois
+Tableau de consommation par mois
